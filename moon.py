@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>نظام حضور الموظفين </title>
+  <title>نظام حضور هي هي </title>
   <meta name="description" content="نظام حضور وانصراف الموظفين - سجل حضور الموظفين وغيابهم بسهولة واحترافية. برنامج حضور وانصراف عربي مجاني وسهل الاستخدام.">
   <meta name="keywords" content="نظام حضور, نظام حضور وانصراف, برنامج حضور, برنامج حضور وانصراف, حضور الموظفين, نظام حضور هي هي, سجل حضور, attendance system, employee attendance, حضور الكتروني, برنامج دوام, نظام دوام, حضور وانصراف مجاني, حضور وانصراف عربي">
   <meta name="robots" content="index, follow">
@@ -243,9 +243,40 @@
 </head>
 <body>
 <div class="container">
+  <!-- نافذة تفاصيل اليوم -->
+  <div id="dayDetailsModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:10000;align-items:center;justify-content:center;">
+    <div style="background:#fff;max-width:420px;width:97vw;max-height:90vh;overflow:auto;border-radius:16px;box-shadow:0 8px 32px #0002;padding:28px 18px 18px 18px;position:relative;display:flex;flex-direction:column;">
+      <button id="closeDayDetailsModal" style="position:absolute;top:10px;left:10px;background:#dc3545;color:white;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;">✖</button>
+      <div id="dayDetailsTitle" style="font-size:20px;color:#1976d2;font-weight:600;text-align:center;margin-bottom:12px;"></div>
+      <div id="dayDetailsTable"></div>
+      <div id="dayDetailsStatus" style="margin-top:10px;font-size:14px;text-align:center;"></div>
+    </div>
+  </div>
+  <!-- عنصر التحميل الاحترافي -->
+  <div id="loaderSpinner" style="display:none;justify-content:center;align-items:center;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.55);z-index:99999;">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <img src="sticker.webp" alt="صورة المستخدم" class="loader-user-img" style="width:140px;height:140px;border-radius:50%;object-fit:cover;object-position:top center;box-shadow:0 4px 24px #1976d244;margin-bottom:12px;background:transparent;">
+      <div style="color:#1976d2;font-size:20px;font-weight:600;letter-spacing:0.5px;">اصبرلي فدوة العمرك النت ضعيف والله...</div>
+      <div style="color:#555;font-size:15px;margin-top:7px;">يتم تحميل البيانات بشكل آمن</div>
+    </div>
+    <style>
+      .loader-user-img {
+        animation: rotateUserImg 1.1s linear infinite;
+      }
+      @keyframes rotateUserImg {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </div>
 
   <!-- تسجيل الدخول -->
   <div id="loginBox">
+    <div style="display:flex;justify-content:center;align-items:center;margin-bottom:18px;">
+      <div style="background:linear-gradient(135deg,#e3f0ff 60%,#cbe6ff 100%);padding:10px;border-radius:50%;box-shadow:0 6px 32px #1976d244;display:flex;justify-content:center;align-items:center;">
+        <img src="sticker.webp" alt="صورة المستخدم" style="width:120px;height:120px;border-radius:50%;object-fit:cover;object-position:top center;box-shadow:0 2px 18px #1976d244;">
+      </div>
+    </div>
     <h2>تسجيل الدخول</h2>
     <input type="text" id="username" placeholder="اسم المستخدم" autocomplete="off" />
     <input type="password" id="password" placeholder="كلمة المرور" autocomplete="off" />
@@ -269,6 +300,15 @@
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
+<style>
+  .day-details-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
+  .day-details-table th, .day-details-table td { border:1px solid #e0e0e0; padding:7px 4px; text-align:center; }
+  .day-details-table th { background:#e3f0ff; color:#1976d2; font-size:16px; }
+  .day-details-select { width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; font-size:15px; }
+  .day-details-user { font-size:13px; color:#888; }
+  .day-details-time { font-size:12px; color:#aaa; }
+  @media (max-width:600px) { .day-details-table th, .day-details-table td { font-size:13px; padding:5px 2px; } }
+</style>
     <button onclick="saveData()">💾 حفظ التعديلات</button>
     <button onclick="logout()" style="background-color: #dc3545; margin-top: 10px;">🚪 تسجيل خروج</button>
   <h3 style="margin-top:20px;">📊 الإحصائيات</h3>
@@ -379,8 +419,7 @@
 <button id="sidebarCloseBtn" style="display:none;">✖</button>
 <div id="sidebarMenu">
   <div class="sidebar-header" id="sidebarUserName"></div>
-  <button onclick="downloadPDF()" style="background:#0dc149;color:rgb(255, 255, 255);">⬇️ تحميل PDF</button>
-  <button onclick="saveData()" style="background:#2196f3;color:white;"> 💾 حفظ التعديلات</button>
+  <button onclick="saveData()" style="background:#0dc149;color:white;"> 💾 حفظ التعديلات</button>
   <button onclick="logout()" style="background:#dc3545;color:white;">🚪 تسجيل خروج</button>
   <button id="sidebarAdminBtn" style="background:#000000;color:white;display:none;">⚙️ لوحة التحكم</button>
   <button id="sidebarMonthsManagerBtn" style="background:#1976d2;color:white;display:none;margin-top:2px;">📅 إدارة الأشهر</button>
@@ -395,428 +434,102 @@
   <button id="sidebarNotesBtn" style="background:#ffb300;color:#333;display:none;">📝 الملاحظات</button>
   <!-- زر إعدادات الملاحظات للمدير فقط -->
   <button id="sidebarNotesSettingsBtn" style="background:#ff9800;color:#222;display:none;">⚙️ إعدادات الملاحظات</button>
-  <button id="sidebarBackupManagerBtn" style="background:#1976d2;color:white;">📦 إدارة النسخ الاحتياطي</button>
+  <!-- أزرار إدارة قاعدة البيانات -->
+
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const backupManagerBtn = document.getElementById('sidebarBackupManagerBtn');
-  backupManagerBtn.addEventListener('click', showBackupManagerModal);
-});
-
-function showBackupManagerModal() {
-  let modal = document.getElementById('backupManagerModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'backupManagerModal';
-    modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:9000;display:flex;align-items:center;justify-content:center;';
-    modal.innerHTML = `
-      <div style=\"background:#fff;max-width:370px;width:97vw;border-radius:16px;box-shadow:0 8px 32px #0002;padding:28px 18px 18px 18px;position:relative;display:flex;flex-direction:column;animation:fadeIn 0.3s;\">
-        <button id=\"closeBackupManagerBtn\" style=\"position:absolute;top:10px;left:10px;background:#dc3545;color:white;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;\">✖</button>
-        <div style=\"font-size:20px;color:#1976d2;margin-bottom:18px;font-weight:600;text-align:center;\">📦 إدارة النسخ الاحتياطي</div>
-        <div style=\"margin-bottom:12px;\">
-          <label style=\"font-size:15px;\">سيتم نسخ كل القاعدة بالكامل.</label>
-        </div>
-        <button id=\"modalBackupBtn\" style=\"background:#1976d2;color:white;margin-bottom:12px;\">نسخ احتياطي يدوي</button>
-        <button id=\"modalRestoreBtn\" style=\"background:#dc3545;color:white;\">استعادة نسخة</button>
-        <hr style=\"margin:18px 0 10px 0;\">
-        <div style=\"font-size:16px;color:#1976d2;font-weight:600;margin-bottom:8px;text-align:center;\">⚙️ إعدادات الجدولة التلقائية</div>
-        <div id="backupScheduleForm" class="backup-schedule-pro">
-          <div class="backup-schedule-header" style="justify-content:center;">
-            <span class="backup-schedule-icon">⏰</span>
-            <span class="backup-schedule-title">جدولة النسخ الاحتياطي التلقائي</span>
-          </div>
-          <div class="backup-schedule-fields">
-            <div class="backup-schedule-row" style="justify-content:center;">
-              <span class="backup-schedule-label">كل</span>
-              <input type="number" id="backupIntervalDays" min="1" max="30" class="backup-schedule-input" value="2" />
-              <span class="backup-schedule-label">يوم</span>
-            </div>
-            <div class="backup-schedule-row" style="justify-content:center;">
-              <span class="backup-schedule-label">الساعة</span>
-              <input type="number" id="backupHour" min="0" max="23" class="backup-schedule-input" value="3" />
-              <span class="backup-schedule-label">:</span>
-              <input type="number" id="backupMinute" min="0" max="59" class="backup-schedule-input" value="0" />
-            </div>
-          </div>
-          <button type="button" id="saveBackupScheduleBtn" class="backup-schedule-save-btn">💾 حفظ الإعدادات</button>
-          <div id="backupScheduleStatus" class="backup-schedule-status"></div>
-          <div id="nextBackupInfo" class="backup-schedule-next"></div>
-        </div>
-        <style>
-          .backup-schedule-pro {
-            background: linear-gradient(135deg,#f8f9fa 70%,#e3eafc 100%);
-            border-radius: 18px;
-            box-shadow: 0 2px 16px #e3eafc44;
-            padding: 22px 18px 18px 18px;
-            margin-bottom: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            align-items: center;
-          }
-          .backup-schedule-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 19px;
-            font-weight: 700;
-            color: #1976d2;
-            margin-bottom: 2px;
-            justify-content: center;
-          }
-          .backup-schedule-icon {
-            font-size: 26px;
-            background: #e3f0ff;
-            border-radius: 50%;
-            padding: 8px 12px;
-            box-shadow: 0 1px 8px #1976d211;
-            margin-left: 2px;
-          }
-          .backup-schedule-title {
-            letter-spacing: 0.2px;
-          }
-          .backup-schedule-fields {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-          }
-          .backup-schedule-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 2px;
-            justify-content: center;
-          }
-          .backup-schedule-label {
-            font-size: 16px;
-            color: #1976d2;
-            font-weight: 600;
-          }
-          .backup-schedule-input {
-            width: 70px;
-            border-radius: 9px;
-            border: 1.5px solid #bfc7e3;
-            padding: 8px 6px;
-            font-size: 16px;
-            background: #fff;
-            text-align: center;
-            margin: 0 2px;
-            box-shadow: 0 1px 6px #e3eafc11;
-            transition: border 0.2s;
-          }
-          .backup-schedule-input:focus {
-            border: 1.5px solid #1976d2;
-            outline: none;
-          }
-          .backup-schedule-save-btn {
-            background: linear-gradient(90deg,#1976d2 60%,#42a5f5 100%);
-            color: white;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 0;
-            box-shadow: 0 2px 12px #1976d222;
-            font-size: 17px;
-            margin-top: 8px;
-            cursor: pointer;
-            width: 90%;
-            transition: background 0.2s;
-          }
-          .backup-schedule-save-btn:hover {
-            background: linear-gradient(90deg,#1565c0 60%,#1976d2 100%);
-          }
-          .backup-schedule-status {
-            margin-top: 6px;
-            font-size: 15px;
-            color: #388e3c;
-            text-align: center;
-            font-weight: 600;
-          }
-          .backup-schedule-next {
-            margin-top: 12px;
-            font-size: 16px;
-            color: #1976d2;
-            background: #e3f0ff;
-            border-radius: 10px;
-            padding: 10px 12px;
-            text-align: center;
-            font-weight: 700;
-            box-shadow: 0 1px 6px #e3eafc22;
-            width: 100%;
-          }
-          @media (max-width: 600px) {
-            .backup-schedule-pro {
-              padding: 10px 2vw 10px 2vw !important;
-              border-radius: 12px !important;
-            }
-            .backup-schedule-header { font-size: 16px !important; }
-            .backup-schedule-icon { font-size: 18px !important; padding: 4px 7px !important; }
-            .backup-schedule-input { width: 44px !important; font-size: 13px !important; }
-            .backup-schedule-save-btn { font-size: 14px !important; padding: 8px 0 !important; }
-            .backup-schedule-next { font-size: 13px !important; padding: 7px 4px !important; border-radius: 7px !important; }
-          }
-        </style>
-        <style>
-          .backup-schedule-pro {
-            background: linear-gradient(135deg,#f8f9fa 70%,#e3eafc 100%);
-            border-radius: 14px;
-            box-shadow: 0 2px 12px #e3eafc33;
-            padding: 18px 12px 14px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-          }
-          .backup-schedule-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 17px;
-            font-weight: 700;
-            color: #1976d2;
-            margin-bottom: 2px;
-          }
-          .backup-schedule-icon {
-            font-size: 22px;
-            background: #e3f0ff;
-            border-radius: 50%;
-            padding: 6px 10px;
-            box-shadow: 0 1px 6px #1976d211;
-            margin-left: 2px;
-          }
-          .backup-schedule-title {
-            letter-spacing: 0.2px;
-          }
-          .backup-schedule-desc {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 4px;
-            background: #f5f7fa;
-            border-radius: 7px;
-            padding: 7px 8px;
-          }
-          .backup-schedule-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 2px;
-          }
-          .backup-schedule-label {
-            font-size: 15px;
-            color: #1976d2;
-            font-weight: 600;
-          }
-          .backup-schedule-input {
-            width: 60px;
-            border-radius: 7px;
-            border: 1.5px solid #bfc7e3;
-            padding: 6px 4px;
-            font-size: 15px;
-            background: #fff;
-            text-align: center;
-            margin: 0 2px;
-            box-shadow: 0 1px 4px #e3eafc11;
-            transition: border 0.2s;
-          }
-          .backup-schedule-input:focus {
-            border: 1.5px solid #1976d2;
-            outline: none;
-          }
-          .backup-schedule-save-btn {
-            background: linear-gradient(90deg,#1976d2 60%,#42a5f5 100%);
-            color: white;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 0;
-            box-shadow: 0 2px 8px #1976d222;
-            font-size: 16px;
-            margin-top: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-          }
-          .backup-schedule-save-btn:hover {
-            background: linear-gradient(90deg,#1565c0 60%,#1976d2 100%);
-          }
-          .backup-schedule-status {
-            margin-top: 6px;
-            font-size: 14px;
-            color: #388e3c;
-            text-align: center;
-            font-weight: 600;
-          }
-          @media (max-width: 600px) {
-            .backup-schedule-pro {
-              padding: 10px 2vw 10px 2vw !important;
-              border-radius: 9px !important;
-            }
-            .backup-schedule-header { font-size: 15px !important; }
-            .backup-schedule-icon { font-size: 18px !important; padding: 4px 7px !important; }
-            .backup-schedule-input { width: 44px !important; font-size: 13px !important; }
-            .backup-schedule-save-btn { font-size: 14px !important; padding: 8px 0 !important; }
-          }
-        </style>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    document.getElementById('closeBackupManagerBtn').onclick = function() { modal.remove(); };
-    document.getElementById('modalBackupBtn').onclick = handleBackup;
-    document.getElementById('modalRestoreBtn').onclick = handleRestore;
-    // تحميل الإعدادات من LocalStorage
-    const settings = JSON.parse(localStorage.getItem('backupScheduleSettings')||'{}');
-    if(settings.intervalDays) document.getElementById('backupIntervalDays').value = settings.intervalDays;
-    if(settings.hour!==undefined) document.getElementById('backupHour').value = settings.hour;
-    if(settings.minute!==undefined) document.getElementById('backupMinute').value = settings.minute;
-    document.getElementById('saveBackupScheduleBtn').onclick = function() {
-      const intervalDays = parseInt(document.getElementById('backupIntervalDays').value)||2;
-      const hour = parseInt(document.getElementById('backupHour').value)||3;
-      const minute = parseInt(document.getElementById('backupMinute').value)||0;
-      localStorage.setItem('backupScheduleSettings', JSON.stringify({intervalDays,hour,minute}));
-      document.getElementById('backupScheduleStatus').textContent = '✅ تم حفظ الإعدادات بنجاح.';
-      setupBackupScheduler();
-    };
-    setupBackupScheduler();
-  } else {
-    modal.style.display = 'flex';
-  }
-}
-
-function handleBackup() {
-  backupAndSendToTelegram();
-}
-
-function handleRestore() {
-    alert('سيتم تنفيذ الاستعادة');
-}
-
-// إعدادات بوت تلغرام (عدلها هنا فقط)
-
-// تفعيل الجدولة التلقائية دائماً عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-  setupBackupScheduler();
-});
-const TELEGRAM_BOT_TOKEN = "8436103027:AAEb9Kt3sm90W52rfapWGEqXkUObcPlaUmQ";
-const TELEGRAM_CHAT_ID = "651561282";
-
-// دالة تشفير النسخة (Base64)
-function encryptBackup(str) {
-  try {
-    return btoa(unescape(encodeURIComponent(str)));
-  } catch(e) { return str; }
-}
-
-// دالة النسخ الاحتياطي وإرسال الملف إلى تلغرام
-async function backupAndSendToTelegram() {
-  try {
-    // جلب جميع البيانات المهمة للنسخة الاحتياطية
-    const [empSnap, attSnap, usersSnap, monthsSettingsSnap, monthsNotesSnap, activityLogSnap, salariesSnap, notificationsSnap] = await Promise.all([
-      db.ref("employees").once("value"),
-      db.ref("attendance").once("value"),
-      db.ref("users").once("value"),
-      db.ref("monthsSettings").once("value"),
-      db.ref("monthsNotes").once("value"),
-      db.ref("activityLog").once("value"),
-      db.ref("salaries").once("value"),
-      db.ref("notifications").once("value")
-    ]);
-    const data = {
-      employees: empSnap.val() || {},
-      attendance: attSnap.val() || {},
-      users: usersSnap.val() || {},
-      monthsSettings: monthsSettingsSnap.val() || {},
-      monthsNotes: monthsNotesSnap.val() || {},
-      activityLog: activityLogSnap.val() || {},
-      salaries: salariesSnap.val() || {},
-      notifications: notificationsSnap.val() || {}
-    };
-    // تشفير النسخة
-    const jsonStr = JSON.stringify(data, null, 2);
-    const encrypted = encryptBackup(jsonStr);
-    const blob = new Blob([encrypted], {type: "application/octet-stream"});
-  // رسالة تلغرام
-  const now = new Date();
-  let hour = now.getHours();
-  let minute = now.getMinutes();
-  let ampm = hour >= 12 ? 'PM' : 'AM';
-  let hour12 = hour % 12;
-  if (hour12 === 0) hour12 = 12;
-  let timeStr = `${hour12.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} ${ampm}`;
-  let dateStr = `${toEnglishNumbers(now.getDate().toString())}-${toEnglishNumbers((now.getMonth()+1).toString())}-${toEnglishNumbers(now.getFullYear().toString())}`;
-  let timeStrEng = toEnglishNumbers(timeStr);
-  const fileName = 'backup-' + now.toISOString().slice(0,10) + '.json';
-  const caption = `📦 تم إنشاء نسخة احتياطية\n📅 التاريخ: ${dateStr} الساعة ${timeStrEng}\n📎 النسخة: ${fileName}`;
-    // رفع الملف إلى تلغرام
-    const formData = new FormData();
-    formData.append('chat_id', TELEGRAM_CHAT_ID);
-    formData.append('caption', caption);
-    formData.append('document', blob, fileName);
-    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, {
-      method: 'POST',
-      body: formData
-    }).then(res => res.json()).then(resp => {
-      if(resp.ok) {
-        alert('✅ تم إرسال النسخة الاحتياطية إلى تلغرام بنجاح!');
-        logActivity('نسخ احتياطي تلقائي','تم إرسال نسخة احتياطية إلى تلغرام');
-      } else {
-        alert('❌ فشل إرسال النسخة إلى تلغرام: '+(resp.description||''));
+// دالة فتح نافذة تفاصيل اليوم
+function showDayDetailsModal(dayKey, dayLabel) {
+  const modal = document.getElementById("dayDetailsModal");
+  const titleDiv = document.getElementById("dayDetailsTitle");
+  const tableDiv = document.getElementById("dayDetailsTable");
+  const statusDiv = document.getElementById("dayDetailsStatus");
+  titleDiv.textContent = `تفاصيل يوم: ${dayLabel}`;
+  statusDiv.textContent = "";
+  const monthKey = `${year}_${(month+1).toString().padStart(2,'0')}`;
+  db.ref(`dayDetails/${monthKey}/${dayKey}`).once("value").then(snap => {
+    const data = snap.val() || {};
+    // استخدم DocumentFragment لتجميع الصفوف
+    const fragment = document.createDocumentFragment();
+    // رأس الجدول
+    const table = document.createElement('table');
+    table.className = 'day-details-table';
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr><th>الموظف</th><th>الاختيار</th><th>آخر تعديل</th></tr>`;
+    table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    employees.forEach(emp => {
+      const val = data[emp]?.value || "";
+      const user = data[emp]?.user || "—";
+      const time = data[emp]?.time || "—";
+      const tr = document.createElement('tr');
+      // اسم الموظف
+      const tdEmp = document.createElement('td');
+      tdEmp.textContent = emp;
+      tr.appendChild(tdEmp);
+      // قائمة الاختيار
+      const tdSelect = document.createElement('td');
+      const select = document.createElement('select');
+      select.className = 'day-details-select';
+      select.setAttribute('data-emp', emp);
+      ["—", "600", "22", "مشتركة", "❌"].forEach(optionVal => {
+        const option = document.createElement('option');
+        option.value = optionVal === "—" ? "" : optionVal;
+        option.textContent = optionVal;
+        if (val === option.value) option.selected = true;
+        select.appendChild(option);
+      });
+      tdSelect.appendChild(select);
+      tr.appendChild(tdSelect);
+      // آخر تعديل
+      const tdEdit = document.createElement('td');
+      let userColor = (user === "admin") ? "#1fa745" : (user === "—" ? "#555" : "#dc3545");
+      function toEnglishDate(str) {
+        if (!str || str === "—") return "—";
+        return str.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/،/g, ",");
       }
-    }).catch(err => {
-      alert('❌ خطأ في الاتصال بتلغرام: '+err.message);
+      tdEdit.innerHTML = `<span class='day-details-user' style='color:${userColor};font-weight:bold;'>${user}</span><br><span class='day-details-time' style='color:#000;'>${toEnglishDate(time)}</span>`;
+      tr.appendChild(tdEdit);
+      tbody.appendChild(tr);
     });
-  } catch(err) {
-    alert('❌ خطأ في تجهيز النسخة الاحتياطية: '+err.message);
-  }
+    table.appendChild(tbody);
+    fragment.appendChild(table);
+    // زر الحفظ
+    const saveBtn = document.createElement('button');
+    saveBtn.id = 'saveDayDetailsBtn';
+    saveBtn.textContent = '💾 حفظ التعديلات';
+    saveBtn.style = 'background:#1976d2;color:white;padding:8px 18px;border:none;border-radius:7px;font-size:16px;margin-top:8px;cursor:pointer;';
+    fragment.appendChild(saveBtn);
+    tableDiv.innerHTML = '';
+    tableDiv.appendChild(fragment);
+    modal.style.display = "flex";
+    document.getElementById("closeDayDetailsModal").onclick = function() { modal.style.display = "none"; };
+    saveBtn.onclick = function() {
+      const selects = tableDiv.querySelectorAll(".day-details-select");
+      const updates = {};
+      let changed = false;
+      employees.forEach(emp => {
+        const sel = Array.from(selects).find(s => s.getAttribute("data-emp") === emp);
+        const newValue = sel ? sel.value : "";
+        const oldValue = data[emp]?.value || "";
+        if (newValue !== oldValue) {
+          updates[emp] = { value: newValue, user: currentUser, time: new Date().toLocaleString('ar-EG') };
+          changed = true;
+        } else if (data[emp]) {
+          updates[emp] = data[emp];
+        }
+      });
+      if (!changed) {
+        statusDiv.textContent = "لا يوجد أي تعديل لحفظه.";
+        return;
+      }
+      db.ref(`dayDetails/${monthKey}/${dayKey}`).set(updates).then(()=>{
+        statusDiv.textContent = "✅ تم حفظ التعديلات";
+        setTimeout(()=>{ modal.style.display = "none"; }, 900);
+      });
+    };
+  });
 }
-
-// جدولة النسخ الاحتياطي التلقائي
-let backupSchedulerTimeout = null;
-function setupBackupScheduler() {
-  if(backupSchedulerTimeout) clearTimeout(backupSchedulerTimeout);
-  const settings = JSON.parse(localStorage.getItem('backupScheduleSettings')||'{}');
-  if(!settings.intervalDays || settings.hour === undefined || settings.minute === undefined) return;
-  // حساب الوقت القادم
-  const now = new Date();
-  let next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), settings.hour, settings.minute||0, 0, 0);
-  if(now > next) next.setDate(next.getDate()+settings.intervalDays);
-  else next.setDate(next.getDate());
-  const ms = next.getTime() - now.getTime();
-  // عرض الوقت القادم في الواجهة مع عد تنازلي
-  const nextInfo = document.getElementById('nextBackupInfo');
-  if(nextInfo) {
-    const arDays = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-    // Format hour/minute in English numerals and AM/PM
-    let hour = next.getHours();
-    let minute = next.getMinutes();
-    let ampm = hour >= 12 ? 'PM' : 'AM';
-    let hour12 = hour % 12;
-    if (hour12 === 0) hour12 = 12;
-    let timeStr = `${hour12.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} ${ampm}`;
-    let dateStr = `${toEnglishNumbers(next.getDate().toString())}-${toEnglishNumbers((next.getMonth()+1).toString())}-${toEnglishNumbers(next.getFullYear().toString())}`;
-    nextInfo.innerHTML = `🕒 النسخة القادمة: <b>${arDays[next.getDay()]}</b> <b>${dateStr}</b> الساعة <b>${toEnglishNumbers(timeStr)}</b><br><span id='backupCountdown' style='display:inline-block;margin-top:7px;padding:7px 18px;background:#e8fbe8;color:#388e3c;font-size:17px;font-weight:700;border-radius:8px;letter-spacing:1px;border:1.5px solid #b2dfdb;'></span>`;
-    // عد تنازلي احترافي hh:mm:ss (English numerals)
-    if(window.backupCountdownInterval) clearInterval(window.backupCountdownInterval);
-    function updateCountdown() {
-      let now2 = new Date();
-      let totalSec = Math.max(0, Math.floor((next.getTime() - now2.getTime())/1000));
-      let h = Math.floor(totalSec/3600);
-      let m = Math.floor((totalSec%3600)/60);
-      let s = totalSec%60;
-      let txt = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-      document.getElementById('backupCountdown').textContent = `الوقت المتبقي: ${toEnglishNumbers(txt)}`;
-    }
-    updateCountdown();
-    window.backupCountdownInterval = setInterval(updateCountdown, 1000);
-  }
-  backupSchedulerTimeout = setTimeout(()=>{
-    backupAndSendToTelegram();
-    setupBackupScheduler();
-  }, ms);
-}
-</script>
-</div>
-<script>
 // دالة تتحقق أن الشهر المعروض هو الشهر الحالي
 function isCurrentMonthSelected() {
   const now = new Date();
@@ -1017,6 +730,10 @@ document.getElementById("sidebarNotesSettingsBtn").onclick = function() {
   }
   // عرض الملاحظات أسفل الجدول تلقائياً بعد تحميل الصفحة إذا كان للمستخدم صلاحية
   document.addEventListener("DOMContentLoaded", function() {
+  // هجرة كلمات المرور القديمة تلقائيًا عند بدء النظام
+  if (typeof migrateAllPlaintextUsers === "function") {
+    migrateAllPlaintextUsers();
+  }
     db.ref("users/"+currentUser).once("value").then(snap=>{
       const data = snap.val()||{};
       const perm = data.notesPermission || "edit";
@@ -1918,13 +1635,12 @@ function clearDatabase() {
           .then(async () => {
             // إعادة إنشاء حساب المدير بعد المسح مباشرة بكلمة مرور مشفرة
             const hashObj = await hashPassword('admin');
-            db.ref('users/admin').set({
+            await db.ref('users/admin').set({
               password: hashObj,
               role: 'admin',
               canEdit: true
-            }).then(() => {
-              alert('تم مسح جميع البيانات بنجاح! تم إعادة إنشاء حساب المدير الافتراضي.');
             });
+            alert('تم مسح جميع البيانات بنجاح! تم إعادة إنشاء حساب المدير الافتراضي.');
           })
           .catch(err => alert('حدث خطأ أثناء المسح: ' + err.message));
       }
@@ -1937,7 +1653,28 @@ function clearDatabase() {
 let employees = [];
 // ========== استرجاع الجلسة عند تحديث الصفحة ========== (مع مراقبة صلاحية التعديل)
 document.addEventListener("DOMContentLoaded", function() {
+  // ميزة الإنشاء التلقائي لحساب المدير إذا تم حذفه
+  db.ref("users/admin").once("value").then(async snap => {
+    if (!snap.exists()) {
+      let hashObj = null;
+      if (typeof hashPassword === "function") {
+        hashObj = await hashPassword("admin");
+      } else {
+        hashObj = "admin";
+      }
+      await db.ref("users/admin").set({
+        password: hashObj,
+        role: "admin",
+        canEdit: true
+      });
+      console.log("تم إنشاء حساب المدير تلقائياً: admin/admin");
+    }
+  });
+
+  // إظهار علامة التحميل فقط إذا كان المستخدم مسجل دخول
+  var loader = document.getElementById("loaderSpinner");
   if (localStorage.getItem('loggedUser')) {
+    loader.style.display = "flex";
     const userObj = JSON.parse(localStorage.getItem('loggedUser'));
     currentUser = userObj.user;
     currentUserRole = userObj.role;
@@ -1954,6 +1691,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // جلب صلاحيات allowedStatsEmps و canViewSalary وتخزينها في window.currentUserData
     db.ref("users/"+currentUser).once("value").then(snap => {
       window.currentUserData = snap.val() || {};
+      // عند تحميل الموظفين والجدول، إخفِ علامة التحميل فقط بعد اكتمال الجدول
       loadEmployees().then(() => {
         generateTable();
         if (typeof tryShowUserEmpStats === "function") tryShowUserEmpStats();
@@ -1970,10 +1708,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const newCanEdit = !!snap.val();
         if (currentUserCanEdit !== newCanEdit) {
           currentUserCanEdit = newCanEdit;
-          // تحديث فوري لصلاحية التعديل في الذاكرة
           if (!window.currentUserData) window.currentUserData = {};
           window.currentUserData.canEdit = newCanEdit;
-          // تعطيل أو تفعيل جميع عناصر التعديل في الواجهة مباشرة
           updateEditabilityUI(newCanEdit);
           generateTable();
           if (!currentUserCanEdit) {
@@ -1983,21 +1719,16 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     }
 
-// دالة تحديث عناصر التعديل في الواجهة حسب الصلاحية
-function updateEditabilityUI(canEdit) {
-  // تعطيل أو تفعيل جميع الحقول أو الأزرار التي تعتمد على الصلاحية
-  // مثال: تعطيل جميع select الخاصة بالحضور
-  document.querySelectorAll('select[data-attendance-select]').forEach(sel => {
-    sel.disabled = !canEdit;
-  });
-  // تعطيل أزرار الحفظ أو الإضافة أو الحذف إذا لزم الأمر
-  document.querySelectorAll('.btn-edit, .btn-save, .btn-delete, .btn-add').forEach(btn => {
-    btn.disabled = !canEdit;
-    if (!canEdit) btn.classList.add('disabled');
-    else btn.classList.remove('disabled');
-  });
-}
-    // مراقبة صلاحيات allowedStatsEmps و canViewSalary وتحديثها في window.currentUserData فوراً
+    function updateEditabilityUI(canEdit) {
+      document.querySelectorAll('select[data-attendance-select]').forEach(sel => {
+        sel.disabled = !canEdit;
+      });
+      document.querySelectorAll('.btn-edit, .btn-save, .btn-delete, .btn-add').forEach(btn => {
+        btn.disabled = !canEdit;
+        if (!canEdit) btn.classList.add('disabled');
+        else btn.classList.remove('disabled');
+      });
+    }
     ["allowedStatsEmps","canViewSalary"].forEach(key => {
       db.ref("users/"+currentUser+"/"+key).on("value", function(snap) {
         if (!window.currentUserData) window.currentUserData = {};
@@ -2042,21 +1773,78 @@ function clearSession() {
 // ========== رسائل واجهة المستخدم ==========
 function showMessage(message, isError = false) {
   const messageDiv = document.getElementById("loginMessage");
-  messageDiv.innerHTML = message;
-  messageDiv.className = isError ? "error" : "loading";
+  if (!message) {
+    messageDiv.innerHTML = "";
+    messageDiv.className = "";
+    return;
+  }
+  if (isError) {
+    messageDiv.innerHTML = `
+      <div style='animation:fadeIn 0.4s; background:linear-gradient(135deg,#fff6f6 60%,#ffe3e3 100%); border-radius:16px; box-shadow:0 6px 24px #d32f2f33; padding:22px 28px; display:flex; align-items:center; gap:18px; border:2.5px solid #d32f2f; margin:16px 0; position:relative;'>
+        <span style='display:inline-block; animation:shake 0.5s;'>
+          <svg width="38" height="38" viewBox="0 0 38 38" style="display:block;">
+            <circle cx="19" cy="19" r="17" fill="#fff" stroke="#d32f2f" stroke-width="2.5"/>
+            <line x1="12" y1="12" x2="26" y2="26" stroke="#d32f2f" stroke-width="3.5" stroke-linecap="round">
+              <animate attributeName="stroke" values="#d32f2f;#ff1744;#d32f2f" dur="1.2s" repeatCount="indefinite"/>
+            </line>
+            <line x1="26" y1="12" x2="12" y2="26" stroke="#d32f2f" stroke-width="3.5" stroke-linecap="round">
+              <animate attributeName="stroke" values="#d32f2f;#ff1744;#d32f2f" dur="1.2s" repeatCount="indefinite"/>
+            </line>
+          </svg>
+        </span>
+        <span style='color:#d32f2f; font-weight:bold; font-size:19px; letter-spacing:0.5px; text-shadow:0 2px 8px #d32f2f22;'>${message}</span>
+      </div>
+      <style>
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-10px);} to { opacity:1; transform:translateY(0);} }
+        @keyframes shake { 0% { transform:translateX(0);} 25% { transform:translateX(-4px);} 50% { transform:translateX(4px);} 75% { transform:translateX(-2px);} 100% { transform:translateX(0);} }
+      </style>
+    `;
+    messageDiv.className = "error";
+  } else if (message.includes("جاري تسجيل الدخول")) {
+    messageDiv.innerHTML = `
+      <div style='animation:fadeIn 0.4s; background:#f6f8fa; border-radius:12px; box-shadow:0 2px 12px #1976d222; padding:13px 18px; display:flex; align-items:center; gap:10px; border:1.5px solid #1976d2; margin:8px 0;'>
+        <span class='login-spinner' style='width:24px;height:24px;display:inline-block;'>
+          <svg width='24' height='24' viewBox='0 0 50 50' style='animation:spin 0.8s linear infinite;'>
+            <circle cx='25' cy='25' r='20' fill='none' stroke='#e3eafc' stroke-width='6'/>
+            <circle cx='25' cy='25' r='20' fill='none' stroke='#1976d2' stroke-width='6' stroke-linecap='round' stroke-dasharray='60 90' stroke-dashoffset='0'/>
+          </svg>
+        </span>
+        <span style='color:#1976d2; font-weight:bold; font-size:16px;'>${message}</span>
+      </div>
+      <style>
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-10px);} to { opacity:1; transform:translateY(0);} }
+        @keyframes spin { 100% { transform:rotate(360deg);} }
+      </style>
+    `;
+    messageDiv.className = "loading";
+  } else {
+    messageDiv.innerHTML = `
+      <div style='animation:fadeIn 0.4s; background:#e3f0ff; border-radius:12px; box-shadow:0 2px 12px #1976d222; padding:13px 18px; display:flex; align-items:center; gap:10px; border:1.5px solid #1976d2; margin:8px 0;'>
+        <span style='color:#1976d2; font-weight:bold; font-size:16px;'>${message}</span>
+      </div>
+      <style>
+        @keyframes fadeIn { from { opacity:0; transform:translateY(-10px);} to { opacity:1; transform:translateY(0);} }
+      </style>
+    `;
+    messageDiv.className = "loading";
+  }
 }
 
 // ========== تسجيل الدخول ==========
 function login() {
   const username = document.getElementById("username").value.trim().toLowerCase();
   const password = document.getElementById("password").value.trim();
-  if (!username || !password) return showMessage("❌ يرجى إدخال اسم المستخدم وكلمة المرور", true);
-  showMessage("🔄 جاري تسجيل الدخول...");
+  if (!username || !password) return showMessage(" يرجى إدخال اسم المستخدم وكلمة المرور", true);
+  showMessage(" جاري تسجيل الدخول...");
   db.ref("users/" + username).once("value").then(async snapshot => {
     if (!snapshot.exists()) throw new Error("User not found");
     const userData = snapshot.val();
     const storedPass = userData.password;
+    console.log("[LOGIN DEBUG] username:", username);
+    console.log("[LOGIN DEBUG] entered password:", password);
+    console.log("[LOGIN DEBUG] stored password object:", storedPass);
     const ok = await verifyPassword(storedPass, password);
+    console.log("[LOGIN DEBUG] verifyPassword result:", ok);
     if (!ok) throw new Error("Wrong password");
     // إذا legacy، حدث كلمة المرور فوراً إلى صيغة hash
     if (typeof storedPass === 'string') {
@@ -2078,6 +1866,7 @@ function login() {
     checkForcedLogoutOnLogin(username);
   }).catch(error => {
     showMessage(error.message === "User not found" ? "❌ اسم المستخدم غير موجود" : "❌ كلمة المرور غير صحيحة", true);
+    console.error("[LOGIN ERROR]", error);
   });
 }
 
@@ -2094,6 +1883,8 @@ function logout() {
 // ========== تحميل الموظفين ==========
 function loadEmployees() {
   
+  // إظهار علامة التحميل
+  document.getElementById("loaderSpinner").style.display = "flex";
   // جلب قائمة الموظفين الخاصة بالشهر الحالي فقط
   const empKey = `employees_${year}_${(month+1).toString().padStart(2,'0')}`;
   return db.ref(empKey).once("value").then(snapshot => {
@@ -2129,6 +1920,8 @@ function loadEmployees() {
       theadRow.appendChild(th);
     });
     loadEmployeesTable();
+    // إخفاء علامة التحميل بعد اكتمال التحميل
+    setTimeout(function(){ document.getElementById("loaderSpinner").style.display = "none"; }, 350);
   });
 }
 
@@ -2176,6 +1969,8 @@ function getDays() {
 }
 
 function generateTable() {
+  // إظهار علامة التحميل
+  document.getElementById("loaderSpinner").style.display = "flex";
   const days = getDays();
   // تحديث عنوان الجدول باسم الشهر الحالي
   document.querySelector("#mainContent h2").textContent = `📋 جدول الحضور - ${arMonths[month]}`;
@@ -2200,7 +1995,8 @@ function generateTable() {
           🖊️ ${editor}${ts ? ' - ' + toEnglishNumbers(ts) : ''}
         </div>`;
       }
-      dateCell.innerHTML = dateContent;
+      // عند الضغط على اليوم، افتح نافذة التفاصيل
+      dateCell.innerHTML = `<span style='cursor:pointer;' onclick='showDayDetailsModal("${day.key}", "${day.label}")'>${dateContent}</span>`;
       row.appendChild(dateCell);
       monthEmployees.forEach((employee, empIndex) => {
         const cell = document.createElement("td");
@@ -2227,7 +2023,6 @@ function generateTable() {
           cell.style.color = "";
           select.style.color = "";
         }
-        // تعطيل التعديل إذا لم يكن الشهر الحالي أو لا يوجد صلاحية
         if (!currentUserCanEdit || !isCurrentMonthSelected()) {
           select.setAttribute('disabled','disabled');
           select.addEventListener('change', (e)=>{ e.target.value = savedData[day.key] ? savedData[day.key][employee] : ""; });
@@ -2263,6 +2058,8 @@ function generateTable() {
     if (typeof renderUserEmpStats === "function") renderUserEmpStats();
     // إظهار رأس عمود التاريخ بعد اكتمال تحميل الجدول
     if(dateHeader) dateHeader.style.display = "";
+    // إخفاء علامة التحميل بعد اكتمال التحميل
+    setTimeout(function(){ document.getElementById("loaderSpinner").style.display = "none"; }, 350);
   });
   // تعطيل جميع select وinput وtextarea وأزرار الحفظ إذا فقدت الصلاحية (احتياطي)
   setTimeout(()=>{
@@ -2457,6 +2254,20 @@ async function deleteUser(username) {
   showDeleteUserModal(username);
 }
 
+// دالة لضمان بقاء حساب المدير دائماً
+async function ensureAdminAccount() {
+  const snap = await db.ref("users").once("value");
+  const users = snap.val() || {};
+  if (!users.admin) {
+    const hashObj = await hashPassword('admin');
+    await db.ref('users/admin').set({
+      password: hashObj,
+      role: 'admin',
+      canEdit: true
+    });
+  }
+}
+
 function showDeleteUserModal(username) {
   let oldModal = document.getElementById("deleteUserModal");
   if (oldModal) oldModal.remove();
@@ -2483,6 +2294,7 @@ function showDeleteUserModal(username) {
   document.body.appendChild(modal);
   document.getElementById("deleteUserConfirmBtn").onclick = async () => {
     await db.ref("users/" + username).remove();
+    await ensureAdminAccount();
     await db.ref("forcedLogout/" + username).set(true);
     if (username === currentUser) {
       localStorage.setItem('accountDeleted', 'true');
@@ -2676,17 +2488,32 @@ function enableEmployeeEdit(index) {
     db.ref("attendance").once("value").then(snapshot => {
       const attendance = snapshot.val() || {};
       Object.keys(attendance).forEach(dayKey => {
-        if (attendance[dayKey][oldName] !== undefined) {
+        if (attendance[dayKey] && Object.prototype.hasOwnProperty.call(attendance[dayKey], oldName)) {
           attendance[dayKey][newName] = attendance[dayKey][oldName];
           delete attendance[dayKey][oldName];
         }
       });
-      employees[index] = newName;
-      // حفظ التغييرات في الموظفين والحضور
-      return Promise.all([
-        db.ref("employees").set(employees),
-        db.ref("attendance").set(attendance)
-      ]);
+      // تحديث جميع جداول الموظفين الشهرية
+      const updates = {};
+      const empRegex = /^employees_\d{4}_\d{2}$/;
+      return db.ref().once("value").then(fullSnap => {
+        const allData = fullSnap.val() || {};
+        Object.keys(allData).forEach(key => {
+          if (empRegex.test(key) && Array.isArray(allData[key])) {
+            const idx = allData[key].indexOf(oldName);
+            if (idx !== -1) {
+              allData[key][idx] = newName;
+              updates[key] = allData[key];
+            }
+          }
+        });
+        employees[index] = newName;
+        updates["employees"] = employees;
+        updates["attendance"] = attendance;
+        // حفظ جميع التغييرات دفعة واحدة
+        const promises = Object.entries(updates).map(([k,v]) => db.ref(k).set(v));
+        return Promise.all(promises);
+      });
     }).then(() => {
       alert("✅ تم تعديل اسم الموظف ونقل جميع بيانات حضوره بنجاح");
       loadEmployeesTable();
@@ -2697,23 +2524,6 @@ function enableEmployeeEdit(index) {
     });
   };
   nameTd.appendChild(saveBtn);
-}
-
-// ========== PDF ==========
-async function downloadPDF() {
-  const element = document.getElementById('attendanceTable');
-  const canvas = await html2canvas(element, {scale:2});
-  const imgData = canvas.toDataURL('image/png');
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('l', 'pt', 'a4');
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const imgProps = pdf.getImageProperties(imgData);
-  const ratio = Math.min(pageWidth / imgProps.width, pageHeight / imgProps.height);
-  const imgWidth = imgProps.width * ratio;
-  const imgHeight = imgProps.height * ratio;
-  pdf.addImage(imgData, 'PNG', (pageWidth - imgWidth)/2, 20, imgWidth, imgHeight);
-  pdf.save('attendance.pdf');
 }
 
 // ========== إحصائيات ==========
@@ -2858,6 +2668,7 @@ function calculateStats(savedData) {
   // ...existing code...
 }
 
+  // زر لترحيل كلمات المرور القديمة
 // ========== Tabs للأشهر ==========
 
 // زر عائم للأشهر بشكل دائري حديث
@@ -3617,44 +3428,102 @@ function showChangePassForm() {
   if (currentUserRole === "admin") {
     db.ref("users").once("value").then(snapshot => {
       const users = snapshot.val() || {};
-      let html = `<label>اختر المستخدم:</label>
+      let html = `<div style='margin-bottom:10px;font-size:15px;color:#1976d2;font-weight:bold;'>إدارة المستخدمين وكلمات المرور</div>
+        <label style='font-size:14px;'>اختر المستخدم:</label>
         <select id="changePassUser" style="width:100%;margin-bottom:10px;">`;
       Object.keys(users).forEach(u => {
         html += `<option value="${u}" ${u===currentUser?'selected':''}>${u}${u==='admin'?' (مدير)':''}</option>`;
       });
       html += `</select>
-        <input type="password" id="changePassOld" placeholder="كلمة المرور الحالية" style="margin-bottom:8px;" />
-        <input type="password" id="changePassNew" placeholder="كلمة المرور الجديدة" style="margin-bottom:8px;" />
-        <button id="changePassSubmit" style="background:#2196f3;color:white;width:100%;margin-top:8px;">تغيير كلمة المرور</button>`;
+        <label style='font-size:14px;'>اسم مستخدم جديد:</label>
+        <input type="text" id="changeUserName" placeholder="اكتب اسم المستخدم الجديد (اختياري)" style="margin-bottom:8px;" />
+        <label style='font-size:14px;'>كلمة مرور جديدة:</label>
+        <input type="password" id="changePassNew" placeholder="اكتب كلمة المرور الجديدة (اختياري)" style="margin-bottom:8px;" />
+        <button id="changeUserSubmit" style="background:#2196f3;color:white;width:100%;margin-top:8px;font-size:16px;">حفظ التغييرات</button>
+        <button id="resetPassBtn" style="background:#ff9800;color:white;width:100%;margin-top:8px;font-size:16px;">إعادة ضبط كلمة المرور (بدون الحاجة للكلمة القديمة)</button>
+        <div style='margin-top:10px;font-size:13px;color:#555;'>يمكنك تغيير اسم المستخدم أو كلمة المرور لأي مستخدم بسهولة.<br>زر إعادة الضبط يسمح لك بتعيين كلمة مرور جديدة مباشرة إذا نسي المستخدم كلمة المرور القديمة.</div>`;
       formDiv.innerHTML = html;
       modal.style.display = "flex";
-      document.getElementById("changePassSubmit").onclick = async function() {
+      // تغيير اسم المستخدم أو كلمة المرور بدون الحاجة لكلمة المرور القديمة
+      document.getElementById("changeUserSubmit").onclick = async function() {
         const user = document.getElementById("changePassUser").value;
-        const oldPass = document.getElementById("changePassOld").value;
         const newPass = document.getElementById("changePassNew").value;
-        if (!oldPass || !newPass) return statusDiv.textContent = "يرجى إدخال جميع الحقول.";
-        const passSnap = await db.ref("users/" + user + "/password").once("value");
-        const stored = passSnap.val();
-        const ok = await verifyPassword(stored, oldPass);
-        if (!ok) return statusDiv.textContent = "كلمة المرور الحالية غير صحيحة.";
-        const hashObj = await hashPassword(newPass);
-        await db.ref("users/" + user + "/password").set(hashObj);
-        statusDiv.textContent = "✅ تم تغيير كلمة المرور بنجاح.";
-        logActivity("تغيير كلمة مرور", `تم تغيير كلمة المرور للمستخدم: ${user} بواسطة: ${currentUser}`);
-        document.getElementById("changePassOld").value = "";
+        const newUserName = document.getElementById("changeUserName").value.trim();
+        let changed = false;
+        // تغيير اسم المستخدم إذا تم إدخال اسم جديد ولم يكن مستخدم مسبقًا
+        if (newUserName && !users[newUserName]) {
+          const userDataSnap = await db.ref("users/" + user).once("value");
+          const userData = userDataSnap.val();
+          await db.ref("users/" + newUserName).set(userData);
+          await db.ref("users/" + user).remove();
+          statusDiv.textContent = `✅ تم تغيير اسم المستخدم إلى: ${newUserName}`;
+          logActivity("تغيير اسم مستخدم", `تم تغيير اسم المستخدم من ${user} إلى ${newUserName} بواسطة: ${currentUser}`);
+          changed = true;
+        } else if (newUserName && users[newUserName]) {
+          statusDiv.textContent = "❌ اسم المستخدم الجديد مستخدم بالفعل.";
+          return;
+        }
+        // تغيير كلمة المرور إذا تم إدخال كلمة مرور جديدة
+        if (newPass) {
+          const hashObj = await hashPassword(newPass);
+          const targetUser = newUserName && !users[newUserName] ? newUserName : user;
+          await db.ref("users/" + targetUser + "/password").set(hashObj);
+          statusDiv.textContent += (changed ? "<br>" : "") + "✅ تم تغيير كلمة المرور بنجاح.";
+          logActivity("تغيير كلمة مرور", `تم تغيير كلمة المرور للمستخدم: ${targetUser} بواسطة: ${currentUser}`);
+          changed = true;
+        }
+        if (!changed) {
+          statusDiv.textContent = "يرجى إدخال اسم مستخدم جديد أو كلمة مرور جديدة.";
+        }
         document.getElementById("changePassNew").value = "";
+        document.getElementById("changeUserName").value = "";
+      };
+      // إعادة ضبط كلمة المرور بدون الحاجة للكلمة القديمة
+      document.getElementById("resetPassBtn").onclick = async function() {
+        const user = document.getElementById("changePassUser").value;
+        let newPass = "";
+        // نافذة احترافية لإدخال كلمة المرور الجديدة
+        let passModal = document.createElement("div");
+        passModal.style = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:9999;display:flex;align-items:center;justify-content:center;";
+        passModal.innerHTML = `<div style='background:#fff;max-width:340px;width:95vw;border-radius:12px;box-shadow:0 8px 32px #0002;padding:22px 18px 18px 18px;position:relative;text-align:center;'>
+          <h3 style='color:#ff9800;margin-bottom:12px;'>إعادة ضبط كلمة المرور</h3>
+          <div style='margin-bottom:10px;font-size:15px;'>أدخل كلمة المرور الجديدة للمستخدم <b style='color:#1976d2;'>${user}</b>:</div>
+          <input type='password' id='newPassInput' style='width:90%;padding:8px 10px;font-size:16px;border-radius:6px;border:1px solid #ccc;margin-bottom:14px;' placeholder='كلمة المرور الجديدة' />
+          <button id='confirmNewPassBtn' style='background:#2196f3;color:white;padding:8px 18px;border:none;border-radius:6px;font-size:16px;cursor:pointer;'>تأكيد</button>
+          <button id='cancelNewPassBtn' style='background:#dc3545;color:white;padding:8px 18px;border:none;border-radius:6px;font-size:16px;cursor:pointer;margin-left:8px;'>إلغاء</button>
+        </div>`;
+        document.body.appendChild(passModal);
+        document.getElementById('confirmNewPassBtn').onclick = async function() {
+          newPass = document.getElementById('newPassInput').value;
+          if (!newPass) {
+            statusDiv.textContent = "يرجى إدخال كلمة مرور جديدة.";
+            passModal.remove();
+            return;
+          }
+          const hashObj = await hashPassword(newPass);
+          await db.ref("users/" + user + "/password").set(hashObj);
+          statusDiv.textContent = "✅ تم إعادة ضبط كلمة المرور بنجاح.";
+          logActivity("إعادة ضبط كلمة مرور", `تم إعادة ضبط كلمة المرور للمستخدم: ${user} بواسطة: ${currentUser}`);
+          passModal.remove();
+        };
+        document.getElementById('cancelNewPassBtn').onclick = function() {
+          passModal.remove();
+        };
       };
     });
   } else {
     let html = `
+      <input type="text" id="changeUserName" placeholder="اسم مستخدم جديد (اختياري)" style="margin-bottom:8px;" />
       <input type="password" id="changePassOld" placeholder="كلمة المرور الحالية" style="margin-bottom:8px;" />
       <input type="password" id="changePassNew" placeholder="كلمة المرور الجديدة" style="margin-bottom:8px;" />
-      <button id="changePassSubmit" style="background:#2196f3;color:white;width:100%;margin-top:8px;">تغيير كلمة المرور</button>`;
+      <button id="changePassSubmit" style="background:#2196f3;color:white;width:100%;margin-top:8px;">تغيير كلمة المرور</button>
+      <button id="resetPassBtn" style="background:#ff9800;color:white;width:100%;margin-top:8px;">إعادة ضبط كلمة المرور (إذا نسيت القديمة)</button>`;
     formDiv.innerHTML = html;
     modal.style.display = "flex";
     document.getElementById("changePassSubmit").onclick = async function() {
       const oldPass = document.getElementById("changePassOld").value;
       const newPass = document.getElementById("changePassNew").value;
+      const newUserName = document.getElementById("changeUserName").value.trim();
       if (!oldPass || !newPass) return statusDiv.textContent = "يرجى إدخال جميع الحقول.";
       const passSnap = await db.ref("users/" + currentUser + "/password").once("value");
       const stored = passSnap.val();
@@ -3662,10 +3531,32 @@ function showChangePassForm() {
       if (!ok) return statusDiv.textContent = "كلمة المرور الحالية غير صحيحة.";
       const hashObj = await hashPassword(newPass);
       await db.ref("users/" + currentUser + "/password").set(hashObj);
-      statusDiv.textContent = "✅ تم تغيير كلمة المرور بنجاح.";
+      // تغيير اسم المستخدم إذا تم إدخال اسم جديد ولم يكن مستخدم مسبقًا
+      const usersSnap = await db.ref("users").once("value");
+      const users = usersSnap.val() || {};
+      if (newUserName && !users[newUserName]) {
+        const userDataSnap = await db.ref("users/" + currentUser).once("value");
+        const userData = userDataSnap.val();
+        await db.ref("users/" + newUserName).set(userData);
+        await db.ref("users/" + currentUser).remove();
+        statusDiv.textContent = `✅ تم تغيير كلمة المرور واسم المستخدم إلى: ${newUserName}`;
+        logActivity("تغيير اسم مستخدم", `تم تغيير اسم المستخدم من ${currentUser} إلى ${newUserName}`);
+      } else {
+        statusDiv.textContent = "✅ تم تغيير كلمة المرور بنجاح.";
+      }
       logActivity("تغيير كلمة مرور", `تم تغيير كلمة المرور للمستخدم: ${currentUser}`);
       document.getElementById("changePassOld").value = "";
       document.getElementById("changePassNew").value = "";
+      document.getElementById("changeUserName").value = "";
+    };
+    // إعادة ضبط كلمة المرور إذا نسيت القديمة
+    document.getElementById("resetPassBtn").onclick = async function() {
+      const newPass = prompt("أدخل كلمة المرور الجديدة:");
+      if (!newPass) return statusDiv.textContent = "يرجى إدخال كلمة مرور جديدة.";
+      const hashObj = await hashPassword(newPass);
+      await db.ref("users/" + currentUser + "/password").set(hashObj);
+      statusDiv.textContent = "✅ تم إعادة ضبط كلمة المرور بنجاح.";
+      logActivity("إعادة ضبط كلمة مرور", `تم إعادة ضبط كلمة المرور للمستخدم: ${currentUser}`);
     };
   }
 }
@@ -3837,3 +3728,5 @@ document.getElementById("sidebarUserControlBtn").onclick = function() {
   });
 }
 </script>
+</body>
+</html>
