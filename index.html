@@ -2462,60 +2462,31 @@ function addEmployee() {
 function loadEmployeesTable() {
   const tbody = document.getElementById("employeesBody");
   tbody.innerHTML = "";
+  // تفعيل السحب والإفلات
+  tbody.innerHTML = "";
   employees.forEach((emp, idx) => {
     const tr = document.createElement("tr");
+    tr.draggable = isCurrentMonthSelected();
+    tr.className = "employee-row";
+    tr.setAttribute("data-index", idx);
+    // عمود السحب
+    const dragTd = document.createElement("td");
+    dragTd.className = "drag-handle-td";
+    dragTd.innerHTML = `<span class='drag-handle' title='اسحب لترتيب الموظف'>≡</span>`;
+    tr.appendChild(dragTd);
+    // اسم الموظف
     const nameTd = document.createElement("td");
     nameTd.textContent = emp;
     nameTd.id = `employeeName_${idx}`;
+    tr.appendChild(nameTd);
+    // إجراءات
     const actionsTd = document.createElement("td");
-    // زر تعديل
     const editBtn = document.createElement("button");
     editBtn.innerHTML = `<span title='تعديل الاسم'>✏️</span>`;
     editBtn.className = "small-button btn-edit";
     editBtn.style.marginLeft = "2px";
     editBtn.onclick = () => enableEmployeeEdit(idx);
     actionsTd.appendChild(editBtn);
-    // زر ترتيب للأعلى
-    if (idx > 0) {
-      const upBtn = document.createElement("button");
-      upBtn.innerHTML = `<span title='نقل للأعلى'>⬆️</span>`;
-      upBtn.className = "small-button btn-move";
-      upBtn.style.background = "#e3f0ff";
-      upBtn.style.color = "#1976d2";
-      upBtn.addEventListener('click', (function(i){ return function(){ moveEmployee(i, i-1); }; })(idx));
-      actionsTd.appendChild(upBtn);
-    }
-    // زر ترتيب للأسفل
-    if (idx < employees.length-1) {
-      const downBtn = document.createElement("button");
-      downBtn.innerHTML = `<span title='نقل للأسفل'>⬇️</span>`;
-      downBtn.className = "small-button btn-move";
-      downBtn.style.background = "#e3f0ff";
-      downBtn.style.color = "#1976d2";
-      downBtn.addEventListener('click', (function(i){ return function(){ moveEmployee(i, i+1); }; })(idx));
-      actionsTd.appendChild(downBtn);
-    }
-    // زر لنقل الموظف للبداية
-    if (idx > 0) {
-      const firstBtn = document.createElement("button");
-      firstBtn.innerHTML = `<span title='نقل للبداية'>⏮️</span>`;
-      firstBtn.className = "small-button btn-move";
-      firstBtn.style.background = "#e3f0ff";
-      firstBtn.style.color = "#1976d2";
-      firstBtn.addEventListener('click', (function(i){ return function(){ moveEmployee(i, 0); }; })(idx));
-      actionsTd.appendChild(firstBtn);
-    }
-    // زر لنقل الموظف للنهاية
-    if (idx < employees.length-1) {
-      const lastBtn = document.createElement("button");
-      lastBtn.innerHTML = `<span title='نقل للنهاية'>⏭️</span>`;
-      lastBtn.className = "small-button btn-move";
-      lastBtn.style.background = "#e3f0ff";
-      lastBtn.style.color = "#1976d2";
-      lastBtn.addEventListener('click', (function(i){ return function(){ moveEmployee(i, employees.length-1); }; })(idx));
-      actionsTd.appendChild(lastBtn);
-    }
-    // زر الحذف يظهر فقط في الشهر الحالي
     if (isCurrentMonthSelected()) {
       const deleteBtn = document.createElement("button");
       deleteBtn.innerHTML = `<span title='حذف الموظف'>🗑️ حذف</span>`;
@@ -2523,9 +2494,35 @@ function loadEmployeesTable() {
       deleteBtn.onclick = () => deleteEmployee(idx);
       actionsTd.appendChild(deleteBtn);
     }
-    tr.appendChild(nameTd);
     tr.appendChild(actionsTd);
     tbody.appendChild(tr);
+  });
+  // أحداث السحب والإفلات
+  let dragSrcIdx = null;
+  tbody.querySelectorAll(".employee-row").forEach(row => {
+    row.addEventListener("dragstart", function(e) {
+      dragSrcIdx = parseInt(row.getAttribute("data-index"));
+      row.style.opacity = "0.5";
+    });
+    row.addEventListener("dragend", function(e) {
+      row.style.opacity = "";
+    });
+    row.addEventListener("dragover", function(e) {
+      e.preventDefault();
+      row.style.background = "#e3f0ff";
+    });
+    row.addEventListener("dragleave", function(e) {
+      row.style.background = "";
+    });
+    row.addEventListener("drop", function(e) {
+      e.preventDefault();
+      row.style.background = "";
+      const dropIdx = parseInt(row.getAttribute("data-index"));
+      if (dragSrcIdx !== null && dragSrcIdx !== dropIdx) {
+        moveEmployee(dragSrcIdx, dropIdx);
+      }
+      dragSrcIdx = null;
+    });
   });
 }
 function enableEmployeeEdit(index) {
@@ -2717,29 +2714,32 @@ function moveEmployee(fromIdx, toIdx) {
   saveEmployees(newEmployees);
   setTimeout(loadEmployeesTable, 300); // إعادة تحميل الجدول بعد الحفظ
 }
-// CSS احترافي لأزرار الترتيب
-if (!document.getElementById('moveBtnProStyle')) {
+// CSS احترافي للسحب والإفلات
+if (!document.getElementById('dragDropProStyle')) {
   const style = document.createElement('style');
-  style.id = 'moveBtnProStyle';
+  style.id = 'dragDropProStyle';
   style.innerHTML = `
-    .btn-move {
-      margin: 0 2px;
-      border-radius: 6px;
-      border: none;
-      background: #e3f0ff;
+    .drag-handle-td {
+      width: 32px;
+      text-align: center;
+      cursor: grab;
+    }
+    .drag-handle {
+      font-size: 22px;
       color: #1976d2;
-      font-size: 16px;
-      font-weight: bold;
-      box-shadow: 0 1px 4px #1976d211;
-      transition: background 0.18s, color 0.18s;
+      cursor: grab;
+      user-select: none;
+      padding: 0 6px;
+      transition: color 0.18s;
     }
-    .btn-move:hover {
-      background: #1976d2;
-      color: #fff;
+    .employee-row[draggable="true"]:hover .drag-handle {
+      color: #388e3c;
     }
-    .btn-move:active {
-      background: #1565c0;
-      color: #fff;
+    .employee-row {
+      transition: background 0.18s;
+    }
+    .employee-row.dragging {
+      opacity: 0.5;
     }
   `;
   document.head.appendChild(style);
