@@ -4383,62 +4383,106 @@
         document.getElementById("closeEmpStatsTab").onclick = function () {
           tab.style.display = "none";
         };
-        renderEmpStatsTabContent();
-      };
+        function renderEmpStatsTabContent() {
+  const contentDiv = document.getElementById("empStatsTabContent");
+  contentDiv.innerHTML = "جاري التحميل...";
 
-      // عرض إعدادات صلاحيات الإحصائيات لكل مستخدم
-      function renderEmpStatsTabContent() {
-        const contentDiv = document.getElementById("empStatsTabContent");
-        contentDiv.innerHTML = "جاري التحميل...";
-        Promise.all([
-          db.ref("users").once("value"),
-          db
-            .ref(`employees_${year}_${(month + 1).toString().padStart(2, "0")}`)
-            .once("value"),
-        ]).then(([usersSnap, empsSnap]) => {
-          const users = usersSnap.val() || {};
-          // استخدم نفس منطق تحميل الموظفين الشهري
-          const employeesList = empsSnap.exists()
-            ? Object.values(empsSnap.val())
-            : [];
-          let html = `<div style='font-size:15px;color:#333;margin-bottom:10px;text-align:center;'>تحكم بعرض إحصائيات الموظفين للمستخدمين</div>`;
-          html += `<table style='width:100%;border-collapse:collapse;'>
+  // 💡 الحل: نضمن أن المفتاح الشهري للموظفين يتم إنشاؤه بناءً على month و year الحاليين.
+  // هذا المتغير يضمن الوصول للمفتاح الصحيح بالـ Firebase.
+  const empKey = `employees_${year}_${(month+1).toString().padStart(2,'0')}`; 
+
+Promise.all([
+    db.ref("users").once("value"),
+    // 💡 جلب قائمة الموظفين الشهرية من المفتاح المحدد
+    db.ref(empKey).once("value")
+  ]).then(([usersSnap, empsSnap]) => {
+    const users = usersSnap.val() || {};
+    // استخراج قائمة الموظفين المحدثة لهذا الشهر
+    const employeesList = empsSnap.exists() ? Object.values(empsSnap.val()) : [];
+    let html = `<div style='font-size:15px;color:#333;margin-bottom:10px;text-align:center;'>تحكم بعرض إحصائيات الموظفين للمستخدمين</div>`;
+    html += `<table style='width:100%;border-collapse:collapse;'>
       <tr style='background:#f6f6f6;'>
         <th>المستخدم</th>
         <th>الموظفون المسموح عرضهم</th>
         <th>عرض الرواتب</th>
-      </tr>`;
-          Object.entries(users).forEach(([username, data]) => {
-            if (username === "admin") return;
-            const allowedEmps = data.allowedStatsEmps || [];
-            const canViewSalary = !!data.canViewSalary;
-            html += `<tr>
+    
+  </tr>`;
+    Object.entries(users).forEach(([username, data]) => {
+      if (username === "admin") return;
+      const allowedEmps = data.allowedStatsEmps || [];
+      const canViewSalary = !!data.canViewSalary;
+      html += `<tr>
         <td style='padding:7px 4px;'>${username}</td>
         <td style='padding:7px 4px;'>
           <select multiple data-user='${username}' class='allowedEmpsSelect' style='width:140px;min-height:38px;font-size:15px;'>
-            ${employeesList
-              .map(
-                (emp) =>
-                  `<option value='${emp}' ${
-                    allowedEmps.includes(emp) ? "selected" : ""
-                  }>${emp}</option>`
-              )
-              .join("")}
-          </select>
+            ${employeesList.map(emp => `<option value='${emp}' ${allowedEmps.includes(emp)?"selected":""}>${emp}</option>`).join("")}
+   
+       </select>
         </td>
         <td style='padding:7px 4px;text-align:center;'>
   <label style='display:inline-flex;align-items:center;gap:7px;'>
     <span style='font-size:15px;color:#1976d2;'>الرواتب</span>
-    <input type='checkbox' data-user='${username}' class='canViewSalaryCheckbox' ${
-              canViewSalary ? "checked" : ""
-            } />
+    <input type='checkbox' data-user='${username}' class='canViewSalaryCheckbox' ${canViewSalary?"checked":""} />
   </label>
 </td>
       </tr>`;
+});
+    html += `</table><div style='font-size:13px;color:#555;margin-top:8px;'>حدد الموظفين المسموح عرضهم لكل مستخدم، وخيار عرض الرواتب. التغيير فوري.</div>`;
+    contentDiv.innerHTML = html;
+// حفظ الموظفين المسموح عرضهم عند التغيير
+    Array.from(document.getElementsByClassName("allowedEmpsSelect")).forEach(sel => {
+      sel.onchange = function() {
+        const user = sel.getAttribute("data-user");
+        const selected = Array.from(sel.selectedOptions).map(opt => opt.value);
+        // تحديث قاعدة البيانات
+        db.ref("users/"+user+"/allowedStatsEmps").set(selected).then(()=>{
+          logActivity("تغيير صلاحية إحصائيات الموظفين","تم تغيير الموظفين المسموح عرضهم للمستخدم: "+user+" إلى: "+selected.join(", "));
+        });
+      
+  // إذا كان المستخدم الحالي هو المتأثر، حدث الإحصائيات فوراً (بدون انتظار قاعدة البيانات)
+        if (user === currentUser) {
+          // تحديث صلاحيات المستخدم الحالي في الذاكرة
+          if (window.currentUserData) window.currentUserData.allowedStatsEmps = selected;
+          // إعادة حساب الإحصائيات فوراً
+          db.ref("attendance").once("value").then(snap => {
+            calculateStats(snap.val() || {});
+   
+       });
+        }
+      };
+});
+    // حفظ خيار الرواتب عند التغيير
+    Array.from(document.getElementsByClassName("canViewSalaryCheckbox")).forEach(chk => {
+      chk.onchange = function() {
+        const user = chk.getAttribute("data-user");
+        const val = chk.checked;
+        // تحديث قاعدة البيانات
+        db.ref("users/"+user+"/canViewSalary").set(val).then(()=>{
+          logActivity("تغيير صلاحية الرواتب","تم تغيير صلاحية عرض الرواتب للمستخدم: "+user+" إلى: "+(val?"نعم":"لا"));
+        });
+        // إذا 
+كان المستخدم الحالي هو المتأثر، حدث الإحصائيات فوراً (بدون انتظار قاعدة البيانات)
+        if (user === currentUser) {
+          if (window.currentUserData) window.currentUserData.canViewSalary = val;
+          db.ref("attendance").once("value").then(snap => {
+            calculateStats(snap.val() || {});
           });
-          html += `</table><div style='font-size:13px;color:#555;margin-top:8px;'>حدد الموظفين المسموح عرضهم لكل مستخدم، وخيار عرض الرواتب. التغيير فوري.</div>`;
-          contentDiv.innerHTML = html;
-
+        }
+      };
+    });
+// مراقبة تغييرات صلاحيات المستخدم الحالي بشكل فوري (Realtime)
+    if (typeof window._statsPermsListenerSet === "undefined") {
+      window._statsPermsListenerSet = true;
+["allowedStatsEmps","canViewSalary"].forEach(key => {
+        db.ref("users/"+currentUser+"/"+key).on("value", function() {
+          db.ref("attendance").once("value").then(snap => {
+            calculateStats(snap.val() || {});
+          });
+        });
+      });
+}
+  });
+}
           // حفظ الموظفين المسموح عرضهم عند التغيير
           Array.from(
             document.getElementsByClassName("allowedEmpsSelect")
