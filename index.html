@@ -625,6 +625,7 @@
         <!-- زر احصائيه الكعده خارج الجدول وقبل كلمة الراتب الكلي -->
         <div style="display: flex; justify-content: flex-start; margin-top: 30px; margin-bottom: -10px;">
           <a href="#" class="myButton" id="showKadahStatsBtn">احصائيه الكعده</a>
+          <a href="#" class="myButton closeKadahBtn" id="closeKadahStatsBtn" style="display:none; margin-right:10px;">اغلاق الجدول</a>
         </div>
         <!-- جدول احصائيات الكعده مخفي -->
   <div id="kadahStatsTableWrapper" style="display:none; max-width:520px; margin:22px auto 0 auto;">
@@ -662,87 +663,97 @@
         border-collapse: separate;
         border-spacing: 0;
         margin-top: 10px;
-        background: #f9fafb;
-        box-shadow: 0 2px 12px #e0e0e0;
-        border-radius: 12px;
-        overflow: hidden;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        transition: box-shadow 0.2s;
+  background: #fff;
+  border: 1.5px solid #ccc;
+  border-radius: 7px;
+  box-shadow: none;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: hidden;
+  transition: border 0.2s;
       }
       .kadah-stats-table th, .kadah-head {
-        padding: 10px 7px;
-        text-align: center;
-        font-weight: bold;
-        font-size: 16px;
-        letter-spacing: 0.3px;
-        border-bottom: 2px solid #e0e0e0;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-        background: #1976d2;
-        color: #fff;
+  padding: 10px 7px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  border-bottom: 1.5px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+  background: linear-gradient(90deg, #283e51 0%, #6a82fb 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px #6a82fb44;
       }
       .kadah-stats-table th:first-child {
-        background: #e3f7ee;
-        color: #009688;
-        border-top-left-radius: 12px;
+  background: #c8e6c9;
+  color: #388e3c;
+  border-top-left-radius: 10px;
       }
       .kadah-stats-table th:nth-child(2) {
-        background: #fffbe3;
-        color: #ff9800;
+  background: #ffe0b2;
+  color: #f57c00;
       }
       .kadah-stats-table th:nth-child(3) {
-        background: #e3eafc;
-        color: #1976d2;
+  background: #bbdefb;
+  color: #1976d2;
       }
       .kadah-stats-table th:last-child {
-        background: #f3e3ff;
-        color: #673ab7;
-        border-top-right-radius: 12px;
+  background: #e1bee7;
+  color: #8e24aa;
+  border-top-right-radius: 10px;
       }
       .kadah-stats-table td {
-        padding: 8px 5px;
-        text-align: center;
-        font-size: 13px;
-        background: #fff;
-        color: #444;
-        border-bottom: 1px solid #e0e0e0;
-        transition: background 0.2s, color 0.2s;
-        font-weight: 500;
+  padding: 8px 5px;
+  text-align: center;
+  font-size: 13px;
+  background: #fff;
+  color: #444;
+  border-bottom: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
       }
       .kadah-stats-table tr {
         transition: box-shadow 0.2s;
       }
       .kadah-stats-table tr:nth-child(even) td {
-        background: #f7f7fa;
+  background: #f7f7fa;
       }
       .kadah-stats-table tr:hover td {
-        background: #e3eafc;
-        color: #222;
+  background: #e3eafc;
+  color: #222;
       }
       .kadah-stats-table td:first-child {
-        font-weight: 600;
-        color: #009688;
-        font-size: 13px;
-        background: #e3f7ee;
-        border-radius: 8px;
+  font-weight: 600;
+  color: #009688;
+  font-size: 16px;
+  background: #e3f7ee;
+  border-radius: 12px;
+  border-right: 1px solid #e0eafc;
       }
       .kadah-stats-table td.kadah-600 {
-        background: #fffbe3;
-        color: #ff9800;
-        border-radius: 6px;
-        font-weight: 500;
+  background: #fffbe3;
+  color: #ff9800;
+  border-radius: 12px;
+  font-weight: 500;
+  border-right: 1px solid #e0eafc;
       }
       .kadah-stats-table td.kadah-22 {
-        background: #e3eafc;
-        color: #1976d2;
-        border-radius: 6px;
-        font-weight: 500;
+  background: #e3eafc;
+  color: #1976d2;
+  border-radius: 12px;
+  font-weight: 500;
+  border-right: 1px solid #e0eafc;
       }
       .kadah-stats-table td.kadah-msh {
-        background: #f3e3ff;
-        color: #673ab7;
-        border-radius: 6px;
-        font-weight: 500;
+  background: #f3e3ff;
+  color: #673ab7;
+  border-radius: 12px;
+  font-weight: 500;
+  border-right: 1px solid #e0eafc;
       }
       @media (max-width: 767px) {
         .kadah-stats-table th {
@@ -763,14 +774,14 @@
         box-shadow: 0px 0px 6px 2px #54a3f7;
         background:linear-gradient(to bottom, #007dc1 5%, #2885c7 100%);
         background-color:#007dc1;
-        border-radius:18px;
-        border:1px solid #124d77;
+      border-radius:16px;
+      border:1px solid #0a4e7d;
         display:inline-block;
         cursor:pointer;
         color:#ffffff;
         font-family:Arial;
         font-size:16px;
-        padding:7px 25px;
+      padding:5px 21px;
         text-decoration:none;
       }
       .myButton:hover {
@@ -780,6 +791,33 @@
       .myButton:active {
         position:relative;
         top:1px;
+      }
+      /* زر اغلاق الجدول */
+      .closeKadahBtn {
+  box-shadow: 0px 0px 8px 2px #e57373;
+  background: linear-gradient(90deg, #ffe3e3 0%, #ffd6d6 100%);
+  background-color: #ffe3e3;
+  border-radius: 22px;
+  border: 1.5px solid #d91842;
+  color: #c62828;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  font-style: normal;
+  padding: 7px 18px;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, color 0.2s;
+      }
+      .closeKadahBtn:hover {
+  background: linear-gradient(90deg, #ffd6d6 0%, #ffe3e3 100%);
+  background-color: #fff0f0;
+  color: #b71c1c;
+      }
+      .closeKadahBtn:active {
+  position: relative;
+  top: 1px;
+  background: #ffcdd2;
+  color: #d32f2f;
       }
       </style>
 
@@ -1051,6 +1089,14 @@
       >
         🔔 الإشعارات
       </button>
+      <!-- Admin-only Announcements button -->
+      <button
+        id="sidebarAnnouncementsBtn"
+        style="background: #ff6f00; color: white; display: none; margin-top:6px;"
+        title="إعلانات المدير"
+      >
+        📢 الإعلانات
+      </button>
       <button
         id="sidebarDeleteDataBtn"
         style="background: #dc3545; color: white; display: none"
@@ -1093,19 +1139,32 @@
       <!-- أزرار إدارة قاعدة البيانات -->
     </div>
     <script>
-      // دالة عرض جدول احصائيات الكعده عند الضغط على الزر
+      // دالة عرض/إخفاء جدول احصائيات الكعده مع تبديل الأزرار وحركة scroll
       document.addEventListener("DOMContentLoaded", function () {
         var kadahBtn = document.getElementById("showKadahStatsBtn");
-        if (kadahBtn) {
+        var closeBtn = document.getElementById("closeKadahStatsBtn");
+        var wrapper = document.getElementById("kadahStatsTableWrapper");
+        if (kadahBtn && closeBtn && wrapper) {
           kadahBtn.onclick = function (e) {
             e.preventDefault();
             renderKadahStatsTable();
-            var wrapper = document.getElementById("kadahStatsTableWrapper");
             wrapper.style.display = "block";
             setTimeout(function(){
               wrapper.classList.add("show");
               wrapper.scrollIntoView({ behavior: "smooth" });
+              kadahBtn.style.display = "none";
+              closeBtn.style.display = "inline-block";
             }, 50);
+          };
+          closeBtn.onclick = function (e) {
+            e.preventDefault();
+            wrapper.classList.remove("show");
+            setTimeout(function(){
+              wrapper.style.display = "none";
+              kadahBtn.style.display = "inline-block";
+              closeBtn.style.display = "none";
+              kadahBtn.scrollIntoView({ behavior: "smooth" });
+            }, 400);
           };
         }
       });
@@ -1242,7 +1301,7 @@
                   updates[emp] = {
                     value: newValue,
                     user: currentUser,
-                    time: new Date().toLocaleString("ar-EG"),
+                    time: formatDateTimeNoSeconds(new Date()),
                   };
                   changed = true;
                 } else if (data[emp]) {
@@ -1782,16 +1841,38 @@
             db.ref("monthsSettings").once("value"),
             db.ref("attendance").once("value"),
             db.ref("employees").once("value"),
+            db.ref("months").once("value"),
             db.ref("monthsNotes").once("value"),
             db.ref("activityLog").once("value"),
-          ]).then(([settingsSnap, attSnap, empSnap, notesSnap, logSnap]) => {
+          ]).then(([
+            settingsSnap,
+            attSnap,
+            empSnap,
+            monthsSnap,
+            notesSnap,
+            logSnap,
+          ]) => {
             const settings = settingsSnap.val() || {
               auto: true,
               closed: {},
               hidden: {},
             };
             const data = attSnap.val() || {};
-            const allEmployees = empSnap.val() || {};
+            const legacyEmployees = empSnap.val() || {};
+            const monthsTree = monthsSnap.val() || {};
+            // Merge employees from legacy `employees` root and new `months` structured nodes
+            const allEmployees = Object.assign({}, legacyEmployees);
+            Object.entries(monthsTree).forEach(([y, monthsObj]) => {
+              Object.entries(monthsObj || {}).forEach(([mm, monthObj]) => {
+                if (monthObj && monthObj.employees) {
+                  Object.entries(monthObj.employees).forEach(([id, val]) => {
+                    // if structured as object {name:..}, extract name, else take value
+                    const name = typeof val === "string" ? val : val.name || "";
+                    if (name) allEmployees[id] = name;
+                  });
+                }
+              });
+            });
             const monthsNotes = notesSnap.val() || {};
             const activityLog = logSnap.val() || {};
             const monthsSet = new Set();
@@ -2358,6 +2439,34 @@
       window.addEventListener("focus", updateSidebarVisibility);
       setInterval(updateSidebarVisibility, 1000);
     </script>
+    <!-- Announcement modal -->
+    <div
+      id="announceModal"
+      style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);z-index:7000;align-items:center;justify-content:center;">
+      <div style="background:#fff;max-width:420px;width:94vw;border-radius:12px;padding:18px;box-shadow:0 8px 32px #0002;position:relative;">
+        <button id="closeAnnounceModal" style="position:absolute;top:10px;left:10px;background:#dc3545;color:#fff;border:none;border-radius:50%;width:30px;height:30px;">✖</button>
+        <h3 style="text-align:center;color:#ff6f00;margin-bottom:10px;">📢 إنشاء إعلان</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <textarea id="announceText" placeholder="اكتب رسالة موجزة للموظفين" style="width:100%;min-height:80px;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:15px;resize:vertical;"></textarea>
+          <label style="font-size:14px;">المدة:</label>
+          <select id="announceDuration" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ccc;">
+            <option value="60">1 ساعة</option>
+            <option value="30">30 دقيقة</option>
+            <option value="15">15 دقيقة</option>
+            <option value="5">5 دقائق</option>
+          </select>
+          <div style="display:flex;gap:8px;">
+            <button id="publishAnnounceBtn" style="flex:1;background:#ff6f00;color:white;border:none;padding:10px;border-radius:8px;">نشر</button>
+            <button id="previewAnnounceBtn" style="flex:1;background:#1976d2;color:white;border:none;padding:10px;border-radius:8px;">معاينة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcement bar (fixed at top) -->
+    <div id="announcementBar" style="display:none;position:fixed;top:0;left:0;right:0;height:48px;background:linear-gradient(90deg,#ff8a00,#ff6f00);color:#fff;z-index:9998;align-items:center;overflow:hidden;">
+      <div id="announcementInner" style="white-space:nowrap;display:inline-block;padding-left:100%; will-change:transform;">&nbsp;</div>
+    </div>
     <!-- نهاية الإضافة -->
 
     <!-- سجل النشاطات - تحسين التفاصيل -->
@@ -2365,10 +2474,8 @@
       // سجل النشاطات
       function logActivity(action, details, extra = {}) {
         const now = new Date();
-        const time =
-          toEnglishNumbers(now.toLocaleDateString("ar-EG")) +
-          " " +
-          toEnglishNumbers(now.toLocaleTimeString("ar-EG"));
+        // format without seconds
+        const time = formatDateTimeNoSeconds(now);
         let style = "";
         if (extra && extra.type === "note") {
           style = "background:#fffde7;border-left:5px solid #ffb300;";
@@ -2386,6 +2493,20 @@
       // تحويل الأرقام العربية إلى إنجليزية
       function toEnglishNumbers(str) {
         return str.replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+      }
+
+      // Format a Date to 'DD/MM/YYYY HH:MM' (Arabic locale) without seconds
+      function formatDateTimeNoSeconds(d) {
+        try {
+          const datePart = toEnglishNumbers(d.toLocaleDateString("ar-EG"));
+          const timePart = toEnglishNumbers(
+            d.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })
+          );
+          return datePart + " " + timePart;
+        } catch (e) {
+          // fallback
+          return toEnglishNumbers(d.toLocaleDateString("ar-EG")) + " " + toEnglishNumbers(d.toLocaleTimeString("ar-EG"));
+        }
       }
 
       // حفظ التعديلات فقط عند وجود تغيير فعلي
@@ -2425,7 +2546,7 @@
                     employee,
                     old: oldValue,
                     new: newValue,
-                    time: new Date().toLocaleString("ar-EG"),
+                    time: formatDateTimeNoSeconds(new Date()),
                   });
                 }
               }
@@ -2433,11 +2554,7 @@
             if (dayChanged) {
               updatedData[day.key].__editor = currentUser;
               const now = new Date();
-              const ts =
-                now.toLocaleDateString("ar-EG") +
-                " " +
-                now.toLocaleTimeString("ar-EG");
-              updatedData[day.key].__editedAt = ts;
+              updatedData[day.key].__editedAt = formatDateTimeNoSeconds(now);
             }
           });
           if (!anyChange) {
@@ -2744,6 +2861,9 @@
             checkForcedLogoutOnLogin(currentUser);
           if (typeof updateSidebarVisibility === "function")
             updateSidebarVisibility();
+          // ensure announcements button visibility is updated after session restore
+          if (typeof updateAnnouncementsVisibility === "function")
+            updateAnnouncementsVisibility();
           if (typeof loadAvailableMonths === "function") loadAvailableMonths();
           listenForNotifications();
 
@@ -2842,6 +2962,15 @@
         currentUserRole = userObj.role;
         currentUserCanEdit = userObj.canEdit;
         localStorage.setItem("loggedUser", JSON.stringify(userObj));
+        // Ensure UI elements that depend on role (like announcements) update immediately
+        try {
+          if (typeof updateAnnouncementsVisibility === "function")
+            updateAnnouncementsVisibility();
+          if (typeof updateSidebarVisibility === "function")
+            updateSidebarVisibility();
+        } catch (e) {
+          console.warn("Failed to update UI after setSession:", e);
+        }
       }
       function clearSession() {
         currentUser = "";
@@ -2927,8 +3056,6 @@
             const userData = snapshot.val();
             const storedPass = userData.password;
             console.log("[LOGIN DEBUG] username:", username);
-            console.log("[LOGIN DEBUG] entered password:", password);
-            console.log("[LOGIN DEBUG] stored password object:", storedPass);
             const ok = await verifyPassword(storedPass, password);
             console.log("[LOGIN DEBUG] verifyPassword result:", ok);
             if (!ok) throw new Error("Wrong password");
@@ -2956,6 +3083,9 @@
             } else {
               document.getElementById("adminPanel").style.display = "none";
             }
+            // update announcements visibility immediately after login UI changes
+            if (typeof updateAnnouncementsVisibility === "function")
+              updateAnnouncementsVisibility();
             checkForcedLogoutOnLogin(username);
           })
           .catch((error) => {
@@ -2983,24 +3113,71 @@
       function loadEmployees() {
         // إظهار علامة التحميل
         document.getElementById("loaderSpinner").style.display = "flex";
-        // جلب قائمة الموظفين الخاصة بالشهر الحالي فقط من المفتاح العام
-        const empKey = `employees_${year}_${(month + 1)
-          .toString()
-          .padStart(2, "0")}`;
+        // new structured path: months/<year>/<MM>/employees
+        const mm = (month + 1).toString().padStart(2, "0");
+        const empKey = `employees_${year}_${mm}`;
+        const newPath = `months/${year}/${mm}/employees`;
+
+        // Helper to migrate a single month from old path to new path (non-destructive)
+        function migrateEmployeesForMonthIfNeeded(yearArg, monthArg, oldEmpKey, newPathArg) {
+          // Copy data from old path to new path only if new path is empty
+          return db
+            .ref(newPathArg)
+            .once("value")
+            .then((newSnap) => {
+              if (newSnap.exists()) return Promise.resolve(false); // already migrated
+              return db.ref("employees/" + oldEmpKey).once("value").then((oldSnap) => {
+                if (!oldSnap.exists()) return false;
+                const oldObj = oldSnap.val() || {};
+                const toWrite = {};
+                Object.entries(oldObj).forEach(([id, name]) => {
+                  // store as object for future extensibility but keep name exact
+                  toWrite[id] = { name: name, migratedFrom: `employees/${oldEmpKey}` };
+                });
+                // write copy to new structured path (non-destructive to old data)
+                return db
+                  .ref(newPathArg)
+                  .set(toWrite)
+                  .then(() => true)
+                  .catch((e) => {
+                    console.error("Migration write failed:", e);
+                    return false;
+                  });
+              });
+            });
+        }
+
+        // Try new structured path first, fallback to legacy path if missing.
         return db
-          .ref("employees/" + empKey)
+          .ref(newPath)
           .once("value")
           .then((snapshot) => {
-            const empObj = snapshot.exists() ? snapshot.val() : {};
-            // ترتيب حسب الإضافة وليس أبجدي
-            // Object.values(empObj) يحافظ على ترتيب الإضافة في جافاسكريبت
-            employees = Object.values(empObj);
-            employeeIds = Object.keys(empObj);
-            const theadRow = document.querySelector(
-              "#attendanceTable thead tr"
-            );
-            while (theadRow.children.length > 1)
-              theadRow.removeChild(theadRow.lastChild);
+            if (snapshot.exists()) {
+              const empObj = snapshot.val() || {};
+              // empObj may have values either as objects {name:..} or plain strings
+              employees = Object.values(empObj).map((v) => (typeof v === "string" ? v : v.name));
+              employeeIds = Object.keys(empObj);
+              // continue with UI updates below
+              return { migrated: false };
+            }
+            // new path empty -> fallback to old legacy path
+            return db
+              .ref("employees/" + empKey)
+              .once("value")
+              .then((oldSnap) => {
+                const empObj = oldSnap.exists() ? oldSnap.val() : {};
+                employees = Object.values(empObj);
+                employeeIds = Object.keys(empObj);
+                // attempt to copy to new structured path in background (non-destructive)
+                migrateEmployeesForMonthIfNeeded(year, month, empKey, newPath).then((ok) => {
+                  if (ok) console.log(`Migrated employees for ${year}-${mm} to ${newPath}`);
+                });
+                return { migrated: true };
+              });
+          })
+          .then(() => {
+            const theadRow = document.querySelector("#attendanceTable thead tr");
+            while (theadRow.children.length > 1) theadRow.removeChild(theadRow.lastChild);
             if (theadRow.children.length > 0) {
               const firstTh = theadRow.children[0];
               firstTh.style.background = "#e3f0ff";
@@ -3089,7 +3266,7 @@
                 const editor = savedData[day.key].__editor;
                 const color = editor === "admin" ? "#1fa745" : "#dc3545";
                 dateContent += `<div class='editor-tag' style="color:${color};font-weight:bold;">
-          🖊️ ${editor}${ts ? " - " + toEnglishNumbers(ts) : ""}
+          📝 ${editor}${ts ? " - " + toEnglishNumbers(ts) : ""}
         </div>`;
               }
               // عند الضغط على اليوم، افتح نافذة التفاصيل
@@ -3248,7 +3425,7 @@
                     employee,
                     old: oldValue,
                     new: newValue,
-                    time: new Date().toLocaleString("ar-EG"),
+                    time: formatDateTimeNoSeconds(new Date()),
                   });
                 }
               }
@@ -3256,11 +3433,7 @@
             if (dayChanged) {
               updatedData[day.key].__editor = currentUser;
               const now = new Date();
-              const ts =
-                now.toLocaleDateString("ar-EG") +
-                " " +
-                now.toLocaleTimeString("ar-EG");
-              updatedData[day.key].__editedAt = ts;
+              updatedData[day.key].__editedAt = formatDateTimeNoSeconds(now);
             }
           });
           if (!anyChange) {
@@ -3302,9 +3475,9 @@
       // Unified save function for employees (add/update/delete)
       async function saveEmployees(newEmployees) {
         if (!canEditCurrentMonth()) return;
-        const empKey = `employees_${year}_${(month + 1)
-          .toString()
-          .padStart(2, "0")}`;
+        const mm = (month + 1).toString().padStart(2, "0");
+        const empKey = `employees_${year}_${mm}`;
+        const newPath = `months/${year}/${mm}/employees`;
         try {
           // توليد معرفات فريدة للموظفين الجدد إذا لم تكن موجودة
           let empObj = {};
@@ -3313,11 +3486,22 @@
             let id =
               employeeIds[idx] ||
               "id" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-            empObj[id] = name;
+            // store as object for new structured format
+            empObj[id] = { name: name };
           });
-          await db.ref("employees/" + empKey).set(empObj);
+          // write primary copy to new structured path
+          await db.ref(newPath).set(empObj);
+          // ALSO keep a legacy-compatible plain string copy under employees/<empKey>
+          const legacyObj = {};
+          Object.entries(empObj).forEach(([id, obj]) => {
+            legacyObj[id] = obj.name;
+          });
+          await db.ref("employees/" + empKey).set(legacyObj).catch((e) => {
+            // non-fatal: log but continue
+            console.warn("Failed to write legacy copy for employees:", e);
+          });
           // ترتيب حسب الإضافة وليس أبجدي
-          employees = Object.values(empObj);
+          employees = Object.values(empObj).map((v) => v.name);
           employeeIds = Object.keys(empObj);
           window.monthEmployees = employees.slice();
           loadEmployeesTable();
@@ -3695,6 +3879,17 @@
             }
           });
           await db.ref("attendance").set(attendance);
+          // تحديث اسم الموظف في allowedStatsEmps لجميع المستخدمين لهذا الشهر
+          const usersSnap = await db.ref("users").once("value");
+          const users = usersSnap.val() || {};
+          await Promise.all(Object.entries(users).map(async ([username, data]) => {
+            if (username === "admin") return;
+            const allowed = Array.isArray(data.allowedStatsEmps) ? data.allowedStatsEmps : [];
+            if (allowed.includes(oldName)) {
+              const updated = allowed.map(e => e === oldName ? newName : e);
+              await db.ref("users/" + username + "/allowedStatsEmps").set(updated);
+            }
+          }));
           const newEmployees = employees.slice();
           newEmployees[index] = newName;
           saveEmployees(newEmployees);
@@ -4383,106 +4578,63 @@
         document.getElementById("closeEmpStatsTab").onclick = function () {
           tab.style.display = "none";
         };
-        function renderEmpStatsTabContent() {
-  const contentDiv = document.getElementById("empStatsTabContent");
-  contentDiv.innerHTML = "جاري التحميل...";
+        renderEmpStatsTabContent();
+      };
 
-  // 💡 الحل: نضمن أن المفتاح الشهري للموظفين يتم إنشاؤه بناءً على month و year الحاليين.
-  // هذا المتغير يضمن الوصول للمفتاح الصحيح بالـ Firebase.
-  const empKey = `employees_${year}_${(month+1).toString().padStart(2,'0')}`; 
-
-Promise.all([
-    db.ref("users").once("value"),
-    // 💡 جلب قائمة الموظفين الشهرية من المفتاح المحدد
-    db.ref(empKey).once("value")
-  ]).then(([usersSnap, empsSnap]) => {
-    const users = usersSnap.val() || {};
-    // استخراج قائمة الموظفين المحدثة لهذا الشهر
-    const employeesList = empsSnap.exists() ? Object.values(empsSnap.val()) : [];
-    let html = `<div style='font-size:15px;color:#333;margin-bottom:10px;text-align:center;'>تحكم بعرض إحصائيات الموظفين للمستخدمين</div>`;
-    html += `<table style='width:100%;border-collapse:collapse;'>
+      // عرض إعدادات صلاحيات الإحصائيات لكل مستخدم
+      function renderEmpStatsTabContent() {
+        const contentDiv = document.getElementById("empStatsTabContent");
+        contentDiv.innerHTML = "جاري التحميل...";
+        // Ensure we always fetch the up-to-date employee list for the currently
+        // selected month/year from the same path that loadEmployees() uses
+        // (employees/<empKey>). Previously this used a wrong/refactored path
+        // which could return stale/incomplete data.
+        const empKey = `employees_${year}_${(month + 1).toString().padStart(2, "0")}`;
+        Promise.all([
+          db.ref("users").once("value"),
+          db.ref("employees/" + empKey).once("value"),
+        ]).then(([usersSnap, empsSnap]) => {
+          const users = usersSnap.val() || {};
+          // استخدم نفس منطق تحميل الموظفين الشهري
+          const employeesList = empsSnap.exists() ? Object.values(empsSnap.val()) : [];
+          let html = `<div style='font-size:15px;color:#333;margin-bottom:10px;text-align:center;'>تحكم بعرض إحصائيات الموظفين للمستخدمين</div>`;
+          html += `<table style='width:100%;border-collapse:collapse;'>
       <tr style='background:#f6f6f6;'>
         <th>المستخدم</th>
         <th>الموظفون المسموح عرضهم</th>
         <th>عرض الرواتب</th>
-    
-  </tr>`;
-    Object.entries(users).forEach(([username, data]) => {
-      if (username === "admin") return;
-      const allowedEmps = data.allowedStatsEmps || [];
-      const canViewSalary = !!data.canViewSalary;
-      html += `<tr>
+      </tr>`;
+          Object.entries(users).forEach(([username, data]) => {
+            if (username === "admin") return;
+            const allowedEmps = data.allowedStatsEmps || [];
+            const canViewSalary = !!data.canViewSalary;
+            html += `<tr>
         <td style='padding:7px 4px;'>${username}</td>
         <td style='padding:7px 4px;'>
           <select multiple data-user='${username}' class='allowedEmpsSelect' style='width:140px;min-height:38px;font-size:15px;'>
-            ${employeesList.map(emp => `<option value='${emp}' ${allowedEmps.includes(emp)?"selected":""}>${emp}</option>`).join("")}
-   
-       </select>
+            ${employeesList
+              .map(
+                (emp) =>
+                  `<option value='${emp}' ${
+                    allowedEmps.includes(emp) ? "selected" : ""
+                  }>${emp}</option>`
+              )
+              .join("")}
+          </select>
         </td>
         <td style='padding:7px 4px;text-align:center;'>
   <label style='display:inline-flex;align-items:center;gap:7px;'>
     <span style='font-size:15px;color:#1976d2;'>الرواتب</span>
-    <input type='checkbox' data-user='${username}' class='canViewSalaryCheckbox' ${canViewSalary?"checked":""} />
+    <input type='checkbox' data-user='${username}' class='canViewSalaryCheckbox' ${
+              canViewSalary ? "checked" : ""
+            } />
   </label>
 </td>
       </tr>`;
-});
-    html += `</table><div style='font-size:13px;color:#555;margin-top:8px;'>حدد الموظفين المسموح عرضهم لكل مستخدم، وخيار عرض الرواتب. التغيير فوري.</div>`;
-    contentDiv.innerHTML = html;
-// حفظ الموظفين المسموح عرضهم عند التغيير
-    Array.from(document.getElementsByClassName("allowedEmpsSelect")).forEach(sel => {
-      sel.onchange = function() {
-        const user = sel.getAttribute("data-user");
-        const selected = Array.from(sel.selectedOptions).map(opt => opt.value);
-        // تحديث قاعدة البيانات
-        db.ref("users/"+user+"/allowedStatsEmps").set(selected).then(()=>{
-          logActivity("تغيير صلاحية إحصائيات الموظفين","تم تغيير الموظفين المسموح عرضهم للمستخدم: "+user+" إلى: "+selected.join(", "));
-        });
-      
-  // إذا كان المستخدم الحالي هو المتأثر، حدث الإحصائيات فوراً (بدون انتظار قاعدة البيانات)
-        if (user === currentUser) {
-          // تحديث صلاحيات المستخدم الحالي في الذاكرة
-          if (window.currentUserData) window.currentUserData.allowedStatsEmps = selected;
-          // إعادة حساب الإحصائيات فوراً
-          db.ref("attendance").once("value").then(snap => {
-            calculateStats(snap.val() || {});
-   
-       });
-        }
-      };
-});
-    // حفظ خيار الرواتب عند التغيير
-    Array.from(document.getElementsByClassName("canViewSalaryCheckbox")).forEach(chk => {
-      chk.onchange = function() {
-        const user = chk.getAttribute("data-user");
-        const val = chk.checked;
-        // تحديث قاعدة البيانات
-        db.ref("users/"+user+"/canViewSalary").set(val).then(()=>{
-          logActivity("تغيير صلاحية الرواتب","تم تغيير صلاحية عرض الرواتب للمستخدم: "+user+" إلى: "+(val?"نعم":"لا"));
-        });
-        // إذا 
-كان المستخدم الحالي هو المتأثر، حدث الإحصائيات فوراً (بدون انتظار قاعدة البيانات)
-        if (user === currentUser) {
-          if (window.currentUserData) window.currentUserData.canViewSalary = val;
-          db.ref("attendance").once("value").then(snap => {
-            calculateStats(snap.val() || {});
           });
-        }
-      };
-    });
-// مراقبة تغييرات صلاحيات المستخدم الحالي بشكل فوري (Realtime)
-    if (typeof window._statsPermsListenerSet === "undefined") {
-      window._statsPermsListenerSet = true;
-["allowedStatsEmps","canViewSalary"].forEach(key => {
-        db.ref("users/"+currentUser+"/"+key).on("value", function() {
-          db.ref("attendance").once("value").then(snap => {
-            calculateStats(snap.val() || {});
-          });
-        });
-      });
-}
-  });
-}
+          html += `</table><div style='font-size:13px;color:#555;margin-top:8px;'>حدد الموظفين المسموح عرضهم لكل مستخدم، وخيار عرض الرواتب. التغيير فوري.</div>`;
+          contentDiv.innerHTML = html;
+
           // حفظ الموظفين المسموح عرضهم عند التغيير
           Array.from(
             document.getElementsByClassName("allowedEmpsSelect")
@@ -4742,24 +4894,31 @@ Promise.all([
         }
         db.ref("users/admin/password")
           .once("value")
-          .then((snapshot) => {
-            if (!snapshot.exists() || snapshot.val() !== oldPass) {
-              statusDiv.textContent = "كلمة المرور الحالية غير صحيحة.";
-              return;
+          .then(async (snapshot) => {
+            try {
+              const stored = snapshot.val();
+              // use verifyPassword to support hashed and legacy formats
+              const ok = await verifyPassword(stored, oldPass);
+              if (!ok) {
+                statusDiv.textContent = "كلمة المرور الحالية غير صحيحة.";
+                return;
+              }
+              const hashObj = await hashPassword(newPass);
+              await db.ref("users/admin/password").set(hashObj);
+              statusDiv.textContent = "✅ تم تغيير كلمة المرور بنجاح.";
+              document.getElementById("adminOldPass").value = "";
+              document.getElementById("adminNewPass").value = "";
+              logActivity(
+                "تغيير كلمة مرور المدير",
+                `تم تغيير كلمة المرور من قبل: ${currentUser}`
+              );
+            } catch (err) {
+              console.error("Error changing admin password:", err);
+              statusDiv.textContent = "❌ حدث خطأ أثناء تغيير كلمة المرور.";
             }
-            db.ref("users/admin/password")
-              .set(newPass)
-              .then(() => {
-                statusDiv.textContent = "✅ تم تغيير كلمة المرور بنجاح.";
-                document.getElementById("adminOldPass").value = "";
-                document.getElementById("adminNewPass").value = "";
-                logActivity(
-                  "تغيير كلمة مرور المدير",
-                  `تم تغيير كلمة المرور من قبل: ${currentUser}`
-                );
-              });
           })
-          .catch(() => {
+          .catch((err) => {
+            console.error("Error reading admin password:", err);
             statusDiv.textContent = "❌ حدث خطأ أثناء تغيير كلمة المرور.";
           });
       }
@@ -4792,10 +4951,21 @@ Promise.all([
               }
             });
             await db.ref("attendance").set(attendance);
+            // Remove employee from allowedStatsEmps for all users
+            const usersSnap = await db.ref("users").once("value");
+            const users = usersSnap.val() || {};
+            await Promise.all(Object.entries(users).map(async ([username, data]) => {
+              if (username === "admin") return;
+              const allowed = Array.isArray(data.allowedStatsEmps) ? data.allowedStatsEmps : [];
+              if (allowed.includes(empName)) {
+                const updated = allowed.filter(e => e !== empName);
+                await db.ref("users/" + username + "/allowedStatsEmps").set(updated);
+              }
+            }));
             saveEmployees(newEmployees);
             logActivity(
               "حذف موظف",
-              `تم حذف الموظف: ${empName} وجميع بيانات حضوره`
+              `تم حذف الموظف: ${empName} وجميع بيانات حضوره وصلاحيات ظهوره للمستخدمين`
             );
           }
         );
@@ -4806,14 +4976,29 @@ Promise.all([
       function backupData() {
         document.getElementById("backupStatus").textContent =
           "جاري تجهيز النسخة...";
-        Promise.all([
+          Promise.all([
           db.ref("employees").once("value"),
+          db.ref("months").once("value"),
           db.ref("attendance").once("value"),
           db.ref("users").once("value"),
         ])
-          .then(([empSnap, attSnap, usersSnap]) => {
+          .then(([empSnap, monthsSnap, attSnap, usersSnap]) => {
+            const legacyEmployees = empSnap.val() || {};
+            const monthsTree = monthsSnap.val() || {};
+            const mergedEmployees = Object.assign({}, legacyEmployees);
+            Object.entries(monthsTree).forEach(([y, monthsObj]) => {
+              Object.entries(monthsObj || {}).forEach(([mm, monthObj]) => {
+                if (monthObj && monthObj.employees) {
+                  Object.entries(monthObj.employees).forEach(([id, val]) => {
+                    const name = typeof val === "string" ? val : val.name || "";
+                    if (name) mergedEmployees[id] = name;
+                  });
+                }
+              });
+            });
             const data = {
-              employees: empSnap.val() || {},
+              employees: mergedEmployees,
+              months: monthsTree,
               attendance: attSnap.val() || {},
               users: usersSnap.val() || {},
             };
@@ -5128,6 +5313,71 @@ Promise.all([
         document.getElementById("sidebarToggleBtn").style.display = "flex";
         updateSidebarVisibility();
       };
+
+    // Announcements feature (admin-only)
+    function updateAnnouncementsVisibility() {
+      const btn = document.getElementById("sidebarAnnouncementsBtn");
+      if (!btn) return;
+      btn.style.display = currentUserRole === "admin" ? "block" : "none";
+    }
+    // call on load and when user role changes
+    try {
+      updateAnnouncementsVisibility();
+    } catch (e) {}
+
+    document.getElementById("sidebarAnnouncementsBtn").onclick = function () {
+      document.getElementById("sidebarMenu").classList.remove("open");
+      document.getElementById("announceModal").style.display = "flex";
+      document.getElementById("announceText").focus();
+    };
+    document.getElementById("closeAnnounceModal").onclick = function () {
+      document.getElementById("announceModal").style.display = "none";
+    };
+
+    // Announcement publish logic
+    let announcementTimer = null;
+    let announceAnimation = null;
+    function publishAnnouncement(text, minutes) {
+      if (!text || !text.trim()) return;
+      const bar = document.getElementById("announcementBar");
+      const inner = document.getElementById("announcementInner");
+      inner.textContent = "   " + text.trim() + "   ";
+      bar.style.display = "flex";
+      bar.style.alignItems = "center";
+      // stop previous animation
+      if (announceAnimation) {
+        cancelAnimationFrame(announceAnimation);
+        announceAnimation = null;
+      }
+      // simple scrolling using transform
+      let pos = bar.clientWidth;
+      function step() {
+        pos -= 1.2; // speed
+        if (pos < -inner.scrollWidth) pos = bar.clientWidth;
+        inner.style.transform = `translateX(${pos}px)`;
+        announceAnimation = requestAnimationFrame(step);
+      }
+      announceAnimation = requestAnimationFrame(step);
+      // auto-hide after minutes
+      if (announcementTimer) clearTimeout(announcementTimer);
+      announcementTimer = setTimeout(() => {
+        if (announceAnimation) cancelAnimationFrame(announceAnimation);
+        announceAnimation = null;
+        bar.style.display = "none";
+        inner.style.transform = "translateX(0)";
+      }, minutes * 60 * 1000);
+    }
+
+    document.getElementById("publishAnnounceBtn").onclick = function () {
+      const text = document.getElementById("announceText").value;
+      const minutes = parseInt(document.getElementById("announceDuration").value || "60", 10);
+      publishAnnouncement(text, minutes);
+      document.getElementById("announceModal").style.display = "none";
+    };
+    document.getElementById("previewAnnounceBtn").onclick = function () {
+      const text = document.getElementById("announceText").value;
+      publishAnnouncement(text, 0.5); // short preview (30s)
+    };
 
       // ========== ربط أزرار القائمة الجانبية بأزرار الموقع الأصلية ==========
       document.getElementById("sidebarAdminBtn").onclick = () => {
