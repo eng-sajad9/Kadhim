@@ -1050,8 +1050,8 @@
     </div>
 
     <!-- تم حذف الأنماط المكررة للـ sidebarMenu لتقليل التكرار -->
-    <button id="sidebarToggleBtn" style="display: none">☰</button>
-    <button id="sidebarCloseBtn" style="display: none">✖</button>
+  <button id="sidebarToggleBtn" style="display: none; z-index:5101; position:fixed; top:14px; right:14px">☰</button>
+  <button id="sidebarCloseBtn" style="display: none; z-index:5101; position:fixed; top:14px; right:14px">✖</button>
     <div id="sidebarMenu">
       <div class="sidebar-header" id="sidebarUserName"></div>
       <button onclick="saveData()" style="background: #0dc149; color: white">
@@ -2450,10 +2450,14 @@
           <textarea id="announceText" placeholder="اكتب رسالة موجزة للموظفين" style="width:100%;min-height:80px;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:15px;resize:vertical;"></textarea>
           <label style="font-size:14px;">المدة:</label>
           <select id="announceDuration" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ccc;">
-            <option value="60">1 ساعة</option>
-            <option value="30">30 دقيقة</option>
-            <option value="15">15 دقيقة</option>
             <option value="5">5 دقائق</option>
+            <option value="15">15 دقيقة</option>
+            <option value="30">30 دقيقة</option>
+            <option value="60">1 ساعة</option>
+            <option value="180">3 ساعات</option>
+            <option value="720">12 ساعة</option>
+            <option value="1440">24 ساعة</option>
+            <option value="custom">أخرى (دقائق)</option>
           </select>
           <div style="display:flex;gap:8px;">
             <button id="publishAnnounceBtn" style="flex:1;background:#ff6f00;color:white;border:none;padding:10px;border-radius:8px;">نشر</button>
@@ -2464,8 +2468,9 @@
     </div>
 
     <!-- Announcement bar (fixed at top) -->
-    <div id="announcementBar" style="display:none;position:fixed;top:0;left:0;right:0;height:48px;background:linear-gradient(90deg,#ff8a00,#ff6f00);color:#fff;z-index:9998;align-items:center;overflow:hidden;">
-      <div id="announcementInner" style="white-space:nowrap;display:inline-block;padding-left:100%; will-change:transform;">&nbsp;</div>
+    <div id="announcementBar" style="display:none;position:fixed;top:0;left:0;right:0;height:52px;background:linear-gradient(90deg,#ff8a00,#ff6f00);color:#fff;z-index:2000;align-items:center;overflow:hidden;padding:6px 12px;">
+      <div id="announcementInner" style="white-space:nowrap;display:inline-block;padding-left:8px;font-weight:700;font-size:18px;font-family:'Segoe UI', Tahoma, Arial, sans-serif;letter-spacing:0.2px;margin-right:56px;">&nbsp;</div>
+      <button id="closeAnnouncementBar" aria-label="إغلاق الإعلان" title="إغلاق" style="position:absolute;right:10px;top:8px;width:36px;height:36px;background:rgba(255,255,255,0.08);border:none;color:#fff;border-radius:8px;font-size:18px;display:none;align-items:center;justify-content:center;cursor:pointer;">✖</button>
     </div>
     <!-- نهاية الإضافة -->
 
@@ -5319,6 +5324,39 @@
       const btn = document.getElementById("sidebarAnnouncementsBtn");
       if (!btn) return;
       btn.style.display = currentUserRole === "admin" ? "block" : "none";
+      // Only show the local close button for admin users. Regular users cannot close the announcement.
+      const closeBtn = document.getElementById('closeAnnouncementBar');
+      if (closeBtn) {
+        if (currentUserRole === 'admin') {
+          // show and position near the sidebar toggle
+          closeBtn.style.display = 'flex';
+          try {
+            const toggle = document.getElementById('sidebarToggleBtn');
+            if (toggle) {
+              // place close button just left of sidebar toggle (same top)
+              const rect = toggle.getBoundingClientRect();
+              // use fixed positioning relative to viewport
+              closeBtn.style.position = 'fixed';
+              closeBtn.style.top = (rect.top) + 'px';
+              // place left of toggle by button width + 8px
+              const leftPos = rect.left - (closeBtn.offsetWidth + 8);
+              closeBtn.style.left = leftPos + 'px';
+              closeBtn.style.right = 'auto';
+            } else {
+              closeBtn.style.position = 'absolute';
+              closeBtn.style.right = '10px';
+              closeBtn.style.top = '8px';
+            }
+          } catch (e) {
+            closeBtn.style.display = 'flex';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.right = '10px';
+            closeBtn.style.top = '8px';
+          }
+        } else {
+          closeBtn.style.display = 'none';
+        }
+      }
     }
     // call on load and when user role changes
     try {
@@ -5334,10 +5372,34 @@
       document.getElementById("announceModal").style.display = "none";
     };
 
-    // Announcement publish logic
+    // custom duration input handling
+    (function() {
+      const durSel = document.getElementById('announceDuration');
+      const modalInner = document.getElementById('announceModal').querySelector('div');
+      let customInput = null;
+      durSel.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          if (!customInput) {
+            customInput = document.createElement('input');
+            customInput.type = 'number';
+            customInput.min = '1';
+            customInput.placeholder = 'أدخل عدد الدقائق (مثال: 90)';
+            customInput.style = 'padding:8px;border-radius:6px;border:1px solid #ccc;width:100%;margin-top:6px;';
+            durSel.parentNode.insertBefore(customInput, durSel.nextSibling);
+          }
+        } else {
+          if (customInput) {
+            customInput.remove();
+            customInput = null;
+          }
+        }
+      });
+    })();
+
+    // Announcement publish logic with DB persistence and listener
     let announcementTimer = null;
     let announceAnimation = null;
-    function publishAnnouncement(text, minutes) {
+    function showAnnouncementLocal(text, minutes) {
       if (!text || !text.trim()) return;
       const bar = document.getElementById("announcementBar");
       const inner = document.getElementById("announcementInner");
@@ -5349,34 +5411,102 @@
         cancelAnimationFrame(announceAnimation);
         announceAnimation = null;
       }
-      // simple scrolling using transform
+      // start from right and scroll faster for clarity
       let pos = bar.clientWidth;
       function step() {
-        pos -= 1.2; // speed
+        pos -= 2.4; // increased speed
         if (pos < -inner.scrollWidth) pos = bar.clientWidth;
         inner.style.transform = `translateX(${pos}px)`;
         announceAnimation = requestAnimationFrame(step);
       }
+      // ensure immediate first frame so text appears fast
       announceAnimation = requestAnimationFrame(step);
-      // auto-hide after minutes
+      // auto-hide after minutes (if minutes <= 0, treat as preview short)
       if (announcementTimer) clearTimeout(announcementTimer);
+      const hideMs = minutes > 0 ? minutes * 60 * 1000 : 30 * 1000;
       announcementTimer = setTimeout(() => {
         if (announceAnimation) cancelAnimationFrame(announceAnimation);
         announceAnimation = null;
         bar.style.display = "none";
         inner.style.transform = "translateX(0)";
-      }, minutes * 60 * 1000);
+      }, hideMs);
     }
+
+    // Persist announcement to DB under announcements/current
+    function publishAnnouncement(text, minutes, persist = true) {
+      if (!text || !text.trim()) return;
+      const payload = {
+        text: text.trim(),
+        minutes: minutes,
+        from: currentUser || "admin",
+        ts: Date.now(),
+      };
+      // write to DB so it survives refresh across clients
+      if (persist) {
+        db.ref('announcements/current').set(payload).catch((e) => console.warn('Failed to persist announcement', e));
+      }
+      // show immediately locally
+      showAnnouncementLocal(payload.text, payload.minutes);
+      // schedule removal from DB when expired (only if persisted)
+      if (persist && minutes > 0) {
+        setTimeout(() => {
+          // only remove if unchanged
+          db.ref('announcements/current').once('value').then(snap => {
+            const cur = snap.val();
+            if (!cur) return;
+            if (cur.ts === payload.ts && cur.text === payload.text) {
+              db.ref('announcements/current').remove().catch(() => {});
+            }
+          });
+        }, minutes * 60 * 1000 + 2000);
+      }
+    }
+
+    // close button handler
+    document.getElementById('closeAnnouncementBar').onclick = function() {
+      const bar = document.getElementById('announcementBar');
+      bar.style.display = 'none';
+      if (announceAnimation) cancelAnimationFrame(announceAnimation);
+      announceAnimation = null;
+      if (announcementTimer) clearTimeout(announcementTimer);
+    };
+
+    // Listen for announcement changes so they persist across refresh
+    db.ref('announcements/current').on('value', function(snap) {
+      const val = snap.val();
+      if (!val) {
+        // clear UI
+        const bar = document.getElementById('announcementBar');
+        if (bar) bar.style.display = 'none';
+        if (announceAnimation) cancelAnimationFrame(announceAnimation);
+        announceAnimation = null;
+        if (announcementTimer) clearTimeout(announcementTimer);
+        return;
+      }
+      // calculate remaining time based on ts and minutes
+      const elapsed = (Date.now() - (val.ts || 0)) / 60000; // minutes
+      const remaining = (val.minutes || 0) - elapsed;
+      // If already expired, remove from DB
+      if (val.minutes > 0 && remaining <= 0) {
+        db.ref('announcements/current').remove().catch(() => {});
+        return;
+      }
+      showAnnouncementLocal(val.text, remaining > 0 ? remaining : 0.5);
+    });
 
     document.getElementById("publishAnnounceBtn").onclick = function () {
       const text = document.getElementById("announceText").value;
-      const minutes = parseInt(document.getElementById("announceDuration").value || "60", 10);
-      publishAnnouncement(text, minutes);
+      const durEl = document.getElementById("announceDuration");
+      let minutes = durEl.value === 'custom' && durEl.nextSibling && durEl.nextSibling.value ? parseInt(durEl.nextSibling.value, 10) : parseInt(durEl.value || "60", 10);
+      if (!minutes || minutes <= 0) minutes = 60;
+      publishAnnouncement(text, minutes, true);
       document.getElementById("announceModal").style.display = "none";
     };
     document.getElementById("previewAnnounceBtn").onclick = function () {
       const text = document.getElementById("announceText").value;
-      publishAnnouncement(text, 0.5); // short preview (30s)
+      const durEl = document.getElementById("announceDuration");
+      // preview should not persist
+      publishAnnouncement(text, 0.5, false); // short preview (30s)
     };
 
       // ========== ربط أزرار القائمة الجانبية بأزرار الموقع الأصلية ==========
