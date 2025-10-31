@@ -1265,6 +1265,15 @@
       >
         ⭐️سجل النشاطات
       </button>
+      <!-- زر النسخ الاحتياطي (للمدير فقط) -->
+      <button
+        id="sidebarBackupBtn"
+        style="background: #283e51; color: white; display: none; margin-top:6px;"
+        title="نسخة احتياطية للشهر الحالي"
+      >
+        📦 النسخ الاحتياطي
+      </button>
+      <!-- نهاية زر النسخ الاحتياطي -->
       <button
         id="sidebarChangePassBtn"
         style="background: #2196f3; color: white"
@@ -1755,6 +1764,7 @@
           "sidebarEmpStatsBtn",
           "sidebarDeleteDataBtn",
           "sidebarFeaturesTabBtn",
+          "sidebarBackupBtn", /* زر النسخ الاحتياطي الخاص بالمدير */
           "sidebarChangePassBtn",
           "sidebarUserControlBtn",
           "sidebarNotesSettingsBtn",
@@ -6857,6 +6867,380 @@
         if(saveBtn) saveBtn.addEventListener('click', saveChanges);
         document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && modal && modal.style.display === 'flex') closeEditor(); });
       })();
+    </script>
+
+    <!-- Backup & Telegram scripts + UI (added feature) -->
+    <!-- مكتبات خارجية تُستخدم لإنشاء PDF من HTML (html2canvas) و توليد ملف PDF (jsPDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+      /*
+        ميزة: النسخ الاحتياطي التلقائي لجدول الحضور وإحصائيات الموظفين (الشهر الحالي فقط)
+        - التوكن و Chat ID مخزنان داخل الكود كما طلبت
+        - يعتمد على Firebase الموجود في المشروع (db variable)
+        - يولد PDF A4 باللغة العربية (باستخدام تحويل HTML إلى صورة ثم تضمينها في PDF)
+        - يرسل الملف إلى بوت تيليجرام عبر API مباشرة من المتصفح
+        - يدعم تشغيل نسخ تلقائية وفق إعداد المحفوظ في DB (backupSettings)
+        ملاحظة أمنية: وضع التوكن داخل الكود يجعل التوكن مرئياً لكل من يملك الوصول للواجهة.
+      */
+
+      // ===================== إعدادات تيليجرام (ضع القيم هنا) =====================
+      // بخلاف طلبك للحفظ داخل الكود، أنصح بتغيير هذه القيم لاحقًا إلى مكان آمن
+      const TELEGRAM_TOKEN = "8436103027:AAEb9Kt3sm90W52rfapWGEqXkUObcPlaUmQ"; // مثال: 123456:ABC-DEF
+      const TELEGRAM_CHAT_ID = "651561282"; // مثال: -1001234567890 أو رقم المستخدم
+
+      // مسار إعدادات النسخ في قاعدة البيانات
+      const BACKUP_SETTINGS_PATH = "backupSettings";
+
+      // Helper: عرض إشعار صغير في أسفل الشاشة
+      function showToast(msg, isError) {
+        try {
+          const id = 'backupToast';
+          let t = document.getElementById(id);
+          if (t) t.remove();
+          t = document.createElement('div');
+          t.id = id;
+          t.style.position = 'fixed';
+          t.style.right = '18px';
+          t.style.bottom = '18px';
+          t.style.zIndex = 20000;
+          t.style.padding = '10px 14px';
+          t.style.borderRadius = '10px';
+          t.style.color = '#fff';
+          t.style.fontWeight = '700';
+          t.style.boxShadow = '0 8px 26px rgba(0,0,0,0.16)';
+          t.style.background = isError ? '#d32f2f' : '#1976d2';
+          t.textContent = msg;
+          document.body.appendChild(t);
+          setTimeout(() => { try { t.remove(); } catch(e){} }, 4500);
+        } catch (e) { console && console.warn && console.warn('toast error', e); }
+      }
+
+      // إنشاء نافذة النسخ الاحتياطي (مودال) عند الضغط على الزر
+      function openBackupModal() {
+        // إذا لم يكن المستخدم مدير، لا تفتح
+        if (currentUserRole !== 'admin') return alert('❌ هذه الخاصية للمدير فقط');
+
+        let modal = document.getElementById('backupModal');
+        if (modal) { modal.style.display = 'flex'; return; }
+
+        modal = document.createElement('div');
+        modal.id = 'backupModal';
+        modal.style = 'position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:22000;display:flex;align-items:center;justify-content:center;';
+        modal.innerHTML = `
+          <div style="background:#fff;max-width:520px;width:94vw;border-radius:12px;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,0.18);">
+            <button id="closeBackupModal" style="position:absolute;left:12px;top:12px;background:#dc3545;color:#fff;border:none;border-radius:50%;width:34px;height:34px;">✖</button>
+            <h3 style="text-align:right;color:#283e51;margin-top:2px;">📦 النسخ الاحتياطي - النسخة الشهرية</h3>
+            <p style="text-align:right;color:#555;margin-top:6px;">أنشئ وارسِل نسخة احتياطية (ملف PDF) تحتوي جدول الحضور كاملًا وإحصائيات الموظفين للشهر الحالي فقط.</p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+              <button id="runBackupNowBtn" style="background:#283e51;color:#fff;padding:9px 14px;border:none;border-radius:8px;">⬇️ إنشاء وإرسال الآن</button>
+              <button id="downloadPdfLocalBtn" style="background:#1976d2;color:#fff;padding:9px 14px;border:none;border-radius:8px;">⬇️ تحميل محليًا</button>
+            </div>
+            <hr style="margin:12px 0;" />
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="text-align:right;flex:1;">تشغيل النسخ التلقائي</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select id="autoBackupInterval" style="padding:6px;border-radius:6px;border:1px solid #ccc;">
+                  <option value="1">كل يوم (1)</option>
+                  <option value="2">كل يومين (2)</option>
+                </select>
+                <label style="display:inline-flex;align-items:center;gap:6px;">
+                  <input type="checkbox" id="autoBackupToggle" />
+                </label>
+              </div>
+            </div>
+            <div id="backupStatus" style="margin-top:12px;text-align:right;color:#444;font-size:14px;">حالة: جاهز</div>
+            <div style="margin-top:8px;text-align:right;color:#777;font-size:13px;">سيتم إرسال الملف إلى بوت تيليجرام المحدد في أعلى الكود.</div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('closeBackupModal').onclick = () => { modal.style.display = 'none'; };
+
+        // تحميل الإعدادات الحالية من DB
+        db.ref(BACKUP_SETTINGS_PATH).once('value').then(snap => {
+          const s = snap.val() || {};
+          document.getElementById('autoBackupToggle').checked = !!s.enabled;
+          document.getElementById('autoBackupInterval').value = (s.intervalDays || 1).toString();
+          document.getElementById('backupStatus').textContent = s.lastRun ? ('آخر تشغيل: ' + s.lastRun) : 'حالة: جاهز';
+        }).catch(()=>{});
+
+        document.getElementById('autoBackupToggle').onchange = function(){
+          const enabled = !!this.checked;
+          const interval = parseInt(document.getElementById('autoBackupInterval').value,10) || 1;
+          db.ref(BACKUP_SETTINGS_PATH).set({ enabled, intervalDays: interval, lastRun: null }).then(()=>{
+            showToast(enabled ? '✅ تم تفعيل النسخ التلقائي' : '⏸️ تم إيقاف النسخ التلقائي');
+            logActivity('تغيير إعدادات النسخ التلقائي', 'enabled=' + enabled + ', interval=' + interval);
+          });
+        };
+        document.getElementById('autoBackupInterval').onchange = function(){
+          const interval = parseInt(this.value,10)||1;
+          db.ref(BACKUP_SETTINGS_PATH + '/intervalDays').set(interval).then(()=>{
+            showToast('✅ تم تحديث الفترة إلى كل ' + interval + ' يوم');
+          });
+        };
+
+        document.getElementById('runBackupNowBtn').onclick = function(){
+          runManualBackup({ sendToTelegram: true, saveLocally: false });
+        };
+        document.getElementById('downloadPdfLocalBtn').onclick = function(){
+          runManualBackup({ sendToTelegram: false, saveLocally: true });
+        };
+      }
+
+      // اجمع بيانات الشهر الحالي فقط
+      async function collectCurrentMonthData() {
+        const now = new Date();
+        const mm = (now.getMonth() + 1);
+        const yy = now.getFullYear();
+        // جلب الحضور ثم تصفيته للشهر الحالي
+        const attSnap = await db.ref('attendance').once('value');
+        const attendanceAll = attSnap.val() || {};
+        const attendance = {};
+        Object.entries(attendanceAll).forEach(([k,v]) => {
+          const parts = k.split('-');
+          if (parts.length === 3) {
+            const y = parseInt(parts[0],10);
+            const m = parseInt(parts[1],10);
+            if (y === yy && m === mm) attendance[k] = v;
+          }
+        });
+        // موظفو الشهر الحالية: نجرب المسار الجديد ثم fallback للـ employees_<year>_<mm>
+        const empList = [];
+        try{
+          const newPathSnap = await db.ref(`months/${yy}/${String(mm).padStart(2,'0')}/employees`).once('value');
+          if(newPathSnap.exists()){
+            const obj = newPathSnap.val() || {};
+            Object.values(obj).forEach(x => empList.push(typeof x === 'string' ? x : x.name));
+          }
+        }catch(e){}
+        if(empList.length === 0){
+          const empKey = `employees_${yy}_${String(mm).padStart(2,'0')}`;
+          const snap2 = await db.ref('employees/' + empKey).once('value');
+          if(snap2.exists()) Object.values(snap2.val()||{}).forEach(x=>empList.push(x));
+        }
+        // رواتب وإحصائيات إن وجدت
+        const salariesSnap = await db.ref('salaries').once('value').catch(()=>({val:()=>{}}));
+        const salaries = (salariesSnap && salariesSnap.val) ? salariesSnap.val() || {} : {};
+        const statsSnap = await db.ref('employeeStats').once('value').catch(()=>({val:()=>{}}));
+        const empStats = (statsSnap && statsSnap.val) ? statsSnap.val() || {} : {};
+        return { attendance, employees: empList, salaries, empStats, month: mm, year: yy };
+      }
+
+      // بناء عنصر HTML مخفي يمثل التقرير (سيتم تحويله لصورة)
+      function buildBackupElement(data) {
+        const wrapper = document.createElement('div');
+        wrapper.style.direction = 'rtl';
+        wrapper.style.fontFamily = 'Segoe UI, Tahoma, Arial, sans-serif';
+        wrapper.style.padding = '18px';
+        wrapper.style.background = '#fff';
+        wrapper.style.color = '#222';
+        // Header
+        const h = document.createElement('div');
+        h.style.textAlign = 'center';
+        h.style.marginBottom = '12px';
+        h.innerHTML = `<div style='font-size:20px;font-weight:800'>📋 النسخة الاحتياطية لشهر ${arMonths[data.month-1]} ${data.year}</div><div style='font-size:13px;color:#666;margin-top:6px;'>تقرير الحضور والإحصائيات — نظام حضور</div>`;
+        wrapper.appendChild(h);
+
+        // Attendance table
+        const attTitle = document.createElement('div'); attTitle.style.marginTop='8px'; attTitle.style.marginBottom='6px'; attTitle.style.fontWeight='700'; attTitle.textContent = 'جدول الحضور (الشهر الحالي)';
+        wrapper.appendChild(attTitle);
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '12px';
+        table.style.textAlign = 'center';
+        // header row
+        const thead = document.createElement('thead');
+        const hr = document.createElement('tr');
+        const dateTh = document.createElement('th'); dateTh.textContent = 'التاريخ'; dateTh.style.padding='8px'; dateTh.style.background='#e3f0ff'; dateTh.style.border='1px solid #ccc'; hr.appendChild(dateTh);
+        data.employees.forEach(emp => { const th = document.createElement('th'); th.textContent = emp; th.style.padding='8px'; th.style.background='#e3f0ff'; th.style.border='1px solid #ccc'; hr.appendChild(th); });
+        thead.appendChild(hr); table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        // build days of month in order
+        const firstDay = new Date(data.year, data.month-1, 1);
+        let date = new Date(firstDay);
+        while (date.getMonth() === (data.month-1)){
+          const key = `${data.year}-${date.getMonth()+1}-${date.getDate()}`;
+          const tr = document.createElement('tr');
+          const tdDate = document.createElement('td'); tdDate.textContent = `${date.getDate()} ${arMonths[date.getMonth()]}`; tdDate.style.padding='6px'; tdDate.style.border='1px solid #ddd'; tr.appendChild(tdDate);
+          data.employees.forEach(emp => {
+            const td = document.createElement('td'); td.style.padding='6px'; td.style.border='1px solid #eee';
+            const dayObj = data.attendance[key] || {};
+            const val = dayObj[emp] || '';
+            td.textContent = val;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+          date.setDate(date.getDate()+1);
+        }
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+
+        // Employee stats table (simple)
+        const statsTitle = document.createElement('div'); statsTitle.style.marginTop='14px'; statsTitle.style.marginBottom='6px'; statsTitle.style.fontWeight='700'; statsTitle.textContent = 'إحصائيات الموظفين (الشهر الحالي)';
+        wrapper.appendChild(statsTitle);
+        const statsTable = document.createElement('table'); statsTable.style.width='100%'; statsTable.style.borderCollapse='collapse'; statsTable.style.fontSize='12px';
+        const sHead = document.createElement('thead');
+        const sTr = document.createElement('tr'); ['الموظف','الحضور','الغياب','الراتب'].forEach(hh=>{ const th=document.createElement('th'); th.textContent=hh; th.style.padding='8px'; th.style.background='#e3f0ff'; th.style.border='1px solid #ccc'; sTr.appendChild(th); });
+        sHead.appendChild(sTr); statsTable.appendChild(sHead);
+        const sBody = document.createElement('tbody');
+        // compute counts
+        const counts = {};
+        Object.keys(data.attendance).forEach(k=>{ const day = data.attendance[k] || {}; Object.keys(day).forEach(emp=>{ if(!counts[emp]) counts[emp] = { shift:0, half:0, absent:0 }; const v = day[emp]; if(v === 'شفت') counts[emp].shift++; else if(v === 'نص') counts[emp].half++; else if(v === '❌') counts[emp].absent++; }); });
+        data.employees.forEach(emp => {
+          const tr = document.createElement('tr');
+          const nameTd = document.createElement('td'); nameTd.textContent = emp; nameTd.style.padding='8px'; nameTd.style.border='1px solid #eee'; tr.appendChild(nameTd);
+          const sh = (counts[emp] && counts[emp].shift) || 0; const hf = (counts[emp] && counts[emp].half) || 0; const ab = (counts[emp] && counts[emp].absent) || 0; const sal = (sh*20000 + hf*10000);
+          const d1 = document.createElement('td'); d1.textContent = sh; d1.style.padding='8px'; d1.style.border='1px solid #eee'; tr.appendChild(d1);
+          const d2 = document.createElement('td'); d2.textContent = ab; d2.style.padding='8px'; d2.style.border='1px solid #eee'; tr.appendChild(d2);
+          const d3 = document.createElement('td'); d3.textContent = sal.toLocaleString() + ' د.ع'; d3.style.padding='8px'; d3.style.border='1px solid #eee'; tr.appendChild(d3);
+          sBody.appendChild(tr);
+        });
+        statsTable.appendChild(sBody);
+        wrapper.appendChild(statsTable);
+
+        // footer timestamp
+        const foot = document.createElement('div'); foot.style.textAlign='left'; foot.style.marginTop='10px'; foot.style.color='#666'; foot.style.fontSize='12px'; foot.textContent = 'توقيت الإنشاء: ' + formatDateTimeNoSeconds(new Date());
+        wrapper.appendChild(foot);
+
+        // hidden off-screen but appended to DOM so fonts/styles apply
+        wrapper.style.position = 'fixed'; wrapper.style.left = '-20000px'; wrapper.style.top = '0';
+        document.body.appendChild(wrapper);
+        return wrapper;
+      }
+
+      // توليد PDF من عنصر HTML باستخدام html2canvas + jsPDF
+      async function generatePdfFromElement(el) {
+        // جودة أعلى عبر scale
+        const scale = 2;
+        const canvas = await html2canvas(el, { scale: scale, useCORS: true, allowTaint: true });
+        // A4 sizes in mm
+        const pdfWidthMM = 210; const pdfHeightMM = 297;
+        const pxPerMM = canvas.width / (pdfWidthMM * (window.devicePixelRatio || 1));
+        // Use jspdf UMD
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        // Calculate image dimensions to fit A4 while preserving aspect
+        const imgData = canvas.toDataURL('image/png');
+        // compute image size in mm based on pxPerMM
+        const imgWidthMM = canvas.width / pxPerMM / (window.devicePixelRatio || 1);
+        const imgHeightMM = canvas.height / pxPerMM / (window.devicePixelRatio || 1);
+        // fit into page margins
+        const margin = 10; const maxW = pdfWidthMM - margin*2; const maxH = pdfHeightMM - margin*2;
+        let w = imgWidthMM, h = imgHeightMM;
+        if (w > maxW) { const ratio = maxW / w; w = maxW; h = h * ratio; }
+        if (h > maxH) { const ratio = maxH / h; h = maxH; w = w * ratio; }
+        const x = (pdfWidthMM - w) / 2; const y = margin;
+        pdf.addImage(imgData, 'PNG', x, y, w, h);
+        const blob = pdf.output('blob');
+        return blob;
+      }
+
+      // إرسال ملف PDF إلى تيليجرام
+      async function sendPdfToTelegram(blob, filename) {
+        if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) throw new Error('Telegram token/chat id not set in code');
+        const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`;
+        const form = new FormData();
+        form.append('chat_id', TELEGRAM_CHAT_ID);
+        form.append('caption', `📦 تم إنشاء نسخة احتياطية جديدة بتاريخ ${formatDateTimeNoSeconds(new Date())}`);
+        form.append('document', new File([blob], filename, { type: 'application/pdf' }));
+        const res = await fetch(url, { method: 'POST', body: form });
+        const json = await res.json();
+        if (!json || !json.ok) throw new Error((json && json.description) || 'Telegram API error');
+        return json;
+      }
+
+      // دالة تنفيذ النسخة اليدوية (أو تحميل محلي)
+      async function runManualBackup(opts = { sendToTelegram:true, saveLocally:false }){
+        const statusEl = document.getElementById('backupStatus');
+        try{
+          if(statusEl) statusEl.textContent = '⏳ جاري إنشاء التقرير...';
+          const data = await collectCurrentMonthData();
+          // تأكد أن لا يتم تضمين بيانات الأشهر السابقة
+          // بناء العنصر
+          const el = buildBackupElement(data);
+          if(statusEl) statusEl.textContent = '⏳ جاري تحويل التقرير إلى PDF...';
+          const blob = await generatePdfFromElement(el);
+          // إزالة العنصر المؤقت
+          try{ el.remove(); }catch(e){}
+          const filename = `backup_${data.year}_${String(data.month).padStart(2,'0')}.pdf`;
+          if(opts.saveLocally){
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+            if(statusEl) statusEl.textContent = '✅ تم تحميل الملف محليًا';
+            showToast('✅ تم تحميل النسخة محليًا');
+          }
+          if(opts.sendToTelegram){
+            if(statusEl) statusEl.textContent = '🔁 جاري إرسال الملف إلى تيليجرام...';
+            try{
+              await sendPdfToTelegram(blob, filename);
+              if(statusEl) statusEl.textContent = '✅ تم إرسال النسخة الاحتياطية إلى تيليجرام';
+              showToast('✅ تم إنشاء النسخة وإرسالها إلى تيليجرام');
+              // سجل النشاط وحدّث آخر تشغيل في DB
+              const nowStr = formatDateTimeNoSeconds(new Date());
+              db.ref(BACKUP_SETTINGS_PATH + '/lastRun').set(nowStr).catch(()=>{});
+              logActivity('نسخة احتياطية', `تم إنشاء وإرسال نسخة احتياطية لشهر ${arMonths[data.month-1]} ${data.year}`);
+            }catch(err){
+              console.error('Telegram send error', err);
+              if(statusEl) statusEl.textContent = '❌ فشل الإرسال إلى تيليجرام';
+              showToast('❌ حدث خطأ أثناء إرسال النسخة إلى تيليجرام', true);
+            }
+          }
+        }catch(err){
+          console.error('Backup error', err);
+          if(statusEl) statusEl.textContent = '❌ حدث خطأ أثناء إنشاء النسخة';
+          showToast('❌ حدث خطأ أثناء إنشاء النسخة', true);
+        }
+      }
+
+      // مراقبة إعدادات النسخ التلقائي وتشغيلها عند الحاجة
+      function initAutoBackupScheduler(){
+        // تحقق كل ساعة (يمكن تعديل الفترة لزيادة الحساسية)
+        setInterval(async ()=>{
+          try{
+            const snap = await db.ref(BACKUP_SETTINGS_PATH).once('value');
+            const s = snap.val() || {};
+            if(s.enabled){
+              const interval = parseInt(s.intervalDays,10) || 1;
+              const lastRun = s.lastRun ? new Date(s.lastRun) : null;
+              const now = new Date();
+              let shouldRun = false;
+              if(!lastRun) shouldRun = true;
+              else {
+                const diffDays = Math.floor((now - lastRun) / (1000*60*60*24));
+                if(diffDays >= interval) shouldRun = true;
+              }
+              if(shouldRun){
+                // تشغيل النسخة التلقائية وإرسالها
+                try{
+                  runManualBackup({ sendToTelegram:true, saveLocally:false });
+                }catch(e){ console.error('Auto backup failed', e); }
+              }
+            }
+          }catch(e){ console.error('Auto backup scheduler error', e); }
+        }, 1000 * 60 * 60); // كل ساعة
+
+        // أيضًا استمع للتغييرات في إعدادات النسخ حتى تتزامن الواجهة فورًا
+        db.ref(BACKUP_SETTINGS_PATH).on('value', snap=>{
+          const s = snap.val() || {};
+          const modalToggle = document.getElementById('autoBackupToggle');
+          const modalInterval = document.getElementById('autoBackupInterval');
+          const statusEl = document.getElementById('backupStatus');
+          if(modalToggle) modalToggle.checked = !!s.enabled;
+          if(modalInterval) modalInterval.value = (s.intervalDays || 1).toString();
+          if(statusEl) statusEl.textContent = s.lastRun ? ('آخر تشغيل: ' + s.lastRun) : 'حالة: جاهز';
+        });
+      }
+
+      // ربط الزر الجانبي
+      document.addEventListener('DOMContentLoaded', function(){
+        const btn = document.getElementById('sidebarBackupBtn');
+        if(btn){
+          btn.onclick = function(){ document.getElementById('sidebarMenu').classList.remove('open'); setTimeout(openBackupModal,120); };
+        }
+        // ابدأ المراقب (يعمل طالما الصفحة مفتوحة)
+        initAutoBackupScheduler();
+      });
     </script>
 
   </body>
