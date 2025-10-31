@@ -420,21 +420,7 @@
             .app-version-modal .close-btn{display:inline-block;margin-top:12px;padding:8px 12px;border-radius:8px;background:#0b66c3;color:#fff;cursor:pointer}
           </style>
 
-          <!-- ribbon element; will be moved under the table when present -->
-          <div id="appVersionRibbon" class="app-version-ribbon fixed" role="button" aria-label="عرض رقم الإصدار" tabindex="0">
-            <div class="version-info" id="appVersionLabel">الإصدار: <strong>v2.7</strong> — آخر تحديث: 30/10/2025</div>
-            <div class="info-dot" aria-hidden="true">i</div>
-          </div>
-
-          <!-- modal removed per user request: ribbon will be plain display only -->
-
           <script>
-            /* Single source of truth for the app version. Edit here to change everywhere. */
-            window.APP_VERSION = window.APP_VERSION || {
-              version: 'v2.7',
-              updated: '30/10/2025',
-              notes: 'Initial release'
-            };
 
             function renderAppVersion(){
               try{
@@ -6307,13 +6293,19 @@
   #aboutUs.pro .version{ margin-top:18px; color:#bfeeff; font-size:14px; display:flex; gap:12px; align-items:center; }
   #aboutUs.pro .version .ver-label{ color:#e9fbff; font-weight:700; font-size:14px }
   /* larger, more prominent version badge */
-  #footerVersion{ display:inline-block; background:linear-gradient(90deg,#ffd54a,#ff7043); color:#082233; font-weight:900; padding:8px 18px; border-radius:999px; box-shadow:0 12px 36px rgba(255,112,67,0.14); font-size:16px; letter-spacing:0.6px }
-      #footerUpdated{ color:rgba(255,255,255,0.85); font-size:13px }
-      /* subtle attention animation (stop on reduced-motion) */
-      @media (prefers-reduced-motion: no-preference){
-        @keyframes pulseBadge{ 0%{ transform:translateY(0) scale(1); }50%{ transform:translateY(-1px) scale(1.02); }100%{ transform:translateY(0) scale(1); } }
-        #footerVersion{ animation: pulseBadge 3.6s ease-in-out infinite; }
-      }
+  /* Softer version badge: smaller, subtler shadow and gentler animation */
+  #footerVersion{
+    display:inline-block;
+    background:linear-gradient(90deg,#ffd54a,#ffb74d); /* softer orange */
+    color:#082233; font-weight:800; padding:6px 12px; border-radius:999px;
+    box-shadow:0 6px 18px rgba(255,167,79,0.08); font-size:14px; letter-spacing:0.4px;
+  }
+  #footerUpdated{ color:rgba(255,255,255,0.85); font-size:13px }
+  /* subtle attention animation (stop on reduced-motion) */
+  @media (prefers-reduced-motion: no-preference){
+    @keyframes pulseBadge{ 0%{ transform:translateY(0) scale(1); }50%{ transform:translateY(-0.5px) scale(1.01); }100%{ transform:translateY(0) scale(1); } }
+    #footerVersion{ animation: pulseBadge 4.2s ease-in-out infinite; }
+  }
 
       /* Responsive adjustments */
       @media (max-width:880px){
@@ -6342,7 +6334,7 @@
       }
     </style>
 
-    <footer id="aboutUs" class="pro" aria-labelledby="aboutTitle">
+  <footer id="aboutUs" class="pro" aria-labelledby="aboutTitle" style="display:none;">
       <div class="inner">
         <div class="founder-card" role="region" aria-label="معلومات المؤسس">
           <div class="founder-meta">
@@ -6418,8 +6410,18 @@
               const igBtn = document.getElementById('founderInstagram'); if(igBtn && v.instagram) igBtn.href = 'https://instagram.com/' + (v.instagram||'').replace(/^@/,'');
               const avatarEl = document.getElementById('founderAvatar');
               if(avatarEl){
-                if(v.avatar){ avatarEl.innerHTML = ''; const img = document.createElement('img'); img.src = v.avatar; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; avatarEl.appendChild(img); }
-                else if(v.name){ avatarEl.textContent = v.name.split(/\s+/).map(s=>s[0]||'').slice(0,2).join(''); }
+                // prefer storing avatar as background so we can control positioning
+                if(v.avatar){
+                  avatarEl.innerHTML = '';
+                  avatarEl.style.backgroundImage = 'url("' + v.avatar + '")';
+                  avatarEl.style.backgroundSize = 'cover';
+                  const ox = v.avatarOffset && typeof v.avatarOffset.x !== 'undefined' ? v.avatarOffset.x : 50;
+                  const oy = v.avatarOffset && typeof v.avatarOffset.y !== 'undefined' ? v.avatarOffset.y : 50;
+                  avatarEl.style.backgroundPosition = ox + '% ' + oy + '%';
+                } else if(v.name){
+                  avatarEl.style.backgroundImage = '';
+                  avatarEl.textContent = v.name.split(/\s+/).map(s=>s[0]||'').slice(0,2).join('');
+                }
               }
             }catch(e){}
           };
@@ -6561,6 +6563,8 @@
   const avatarSizeVal = document.getElementById('aboutEditAvatarSizeVal');
   // hold a selected avatar dataURL (from file) so saveChanges can persist it
   let _avatarDataURL = null;
+  // avatar offset in percent (0..100) for background-position
+  let _avatarOffset = { x: 50, y: 50 };
 
         function openEditor(){
           // populate from current DOM
@@ -6630,19 +6634,44 @@
           modal.style.display = 'flex';
         }
 
-        function renderAvatarPreview(src, initials){
-          avatarPreview.innerHTML = '';
+        function _applyBackgroundToElement(el, src, offset){
+          if(!el) return;
           if(src){
-            const i = document.createElement('img');
-            i.src = src;
-            i.style.width = '100%'; i.style.height = '100%'; i.style.objectFit = 'cover';
-            avatarPreview.appendChild(i);
+            el.innerHTML = '';
+            el.style.backgroundImage = 'url("' + src + '")';
+            el.style.backgroundSize = 'cover';
+            const ox = offset && typeof offset.x !== 'undefined' ? offset.x : 50;
+            const oy = offset && typeof offset.y !== 'undefined' ? offset.y : 50;
+            el.style.backgroundPosition = ox + '% ' + oy + '%';
           } else {
+            // remove background and show initials
+            el.style.backgroundImage = '';
+            el.innerHTML = '';
+          }
+        }
+
+        function renderAvatarPreview(src, initials){
+          // Render using background-image so we can control background-position (drag)
+          if(src){
+            _applyBackgroundToElement(avatarPreview, src, _avatarOffset);
+            avatarPreview.style.cursor = 'grab';
+          } else {
+            avatarPreview.style.backgroundImage = '';
+            avatarPreview.innerHTML = '';
             const span = document.createElement('div');
-            span.style.fontWeight = '800'; span.style.fontSize = '28px'; span.style.color = '#082233';
+            span.style.fontWeight = '800';
+            // make initials font-size proportional to avatar size if available
+            try{
+              const sz = (avatarSizeIn && avatarSizeIn.value) ? parseInt(avatarSizeIn.value,10) : 88;
+              span.style.fontSize = (sz/3.2) + 'px';
+            }catch(e){ span.style.fontSize = '28px'; }
+            span.style.color = '#082233';
             span.textContent = initials || '';
             avatarPreview.appendChild(span);
+            avatarPreview.style.cursor = 'default';
           }
+          // Also update the real footer avatar preview if present
+          try{ const fv = document.getElementById('founderAvatar'); if(fv){ if(src) _applyBackgroundToElement(fv, src, _avatarOffset); else fv.textContent = initials || ''; } }catch(e){}
         }
 
         // file input preview handling
@@ -6669,6 +6698,42 @@
             const av = document.getElementById('founderAvatar'); if(av){ av.style.width = v + 'px'; av.style.height = v + 'px'; av.style.fontSize = (v/3.2) + 'px'; }
           });
         }
+
+        // Drag-to-position for avatarPreview (mouse + touch)
+        (function(){
+          let dragging = false, startX=0, startY=0, startOffset = {x:50,y:50};
+          function toPercentDelta(dx, dy, el){
+            const w = el.clientWidth || 1; const h = el.clientHeight || 1;
+            return { dx: (dx / w) * 100, dy: (dy / h) * 100 };
+          }
+          function clamp(v){ return Math.max(0, Math.min(100, v)); }
+
+          avatarPreview.addEventListener('mousedown', function(e){
+            if(!avatarPreview.style.backgroundImage) return;
+            dragging = true; avatarPreview.style.cursor='grabbing';
+            startX = e.clientX; startY = e.clientY; startOffset = { x: _avatarOffset.x, y: _avatarOffset.y };
+            e.preventDefault();
+          });
+          document.addEventListener('mousemove', function(e){
+            if(!dragging) return;
+            const delta = toPercentDelta(e.clientX - startX, e.clientY - startY, avatarPreview);
+            _avatarOffset.x = clamp(startOffset.x + delta.dx);
+            _avatarOffset.y = clamp(startOffset.y + delta.dy);
+            // apply to preview and footer
+            try{ _applyBackgroundToElement(avatarPreview, (_avatarDataURL || (avatarUrlIn && avatarUrlIn.value)) || (document.getElementById('founderAvatar') && (document.getElementById('founderAvatar').style.backgroundImage ? document.getElementById('founderAvatar').style.backgroundImage.replace(/^url\(["']?|["']?\)$/g,'') : null)), _avatarOffset); }catch(e){}
+            try{ const fv = document.getElementById('founderAvatar'); if(fv) fv.style.backgroundPosition = _avatarOffset.x + '% ' + _avatarOffset.y + '%'; }catch(e){}
+          });
+          document.addEventListener('mouseup', function(){ if(dragging){ dragging=false; avatarPreview.style.cursor='grab'; } });
+
+          // touch support
+          avatarPreview.addEventListener('touchstart', function(e){
+            const t = e.touches && e.touches[0]; if(!t) return;
+            if(!avatarPreview.style.backgroundImage) return;
+            dragging = true; startX = t.clientX; startY = t.clientY; startOffset = { x: _avatarOffset.x, y: _avatarOffset.y };
+          });
+          avatarPreview.addEventListener('touchmove', function(e){ if(!dragging) return; const t = e.touches && e.touches[0]; if(!t) return; const delta = toPercentDelta(t.clientX - startX, t.clientY - startY, avatarPreview); _avatarOffset.x = clamp(startOffset.x + delta.dx); _avatarOffset.y = clamp(startOffset.y + delta.dy); try{ _applyBackgroundToElement(avatarPreview, (_avatarDataURL || (avatarUrlIn && avatarUrlIn.value)) || (document.getElementById('founderAvatar') && (document.getElementById('founderAvatar').style.backgroundImage ? document.getElementById('founderAvatar').style.backgroundImage.replace(/^url\(["']?|["']?\)$/g,'') : null)), _avatarOffset); }catch(e){}; try{ const fv = document.getElementById('founderAvatar'); if(fv) fv.style.backgroundPosition = _avatarOffset.x + '% ' + _avatarOffset.y + '%'; }catch(e){}; e.preventDefault(); });
+          avatarPreview.addEventListener('touchend', function(){ dragging=false; });
+        })();
 
         function closeEditor(){ modal.style.display = 'none'; }
 
@@ -6701,11 +6766,19 @@
 
           // version / updated / footer credit updates
           try{
-            const newVer = (versionIn && versionIn.value) ? versionIn.value.trim() : '';
+            // normalize version (strip leading v) and update display with a single 'v' prefix
+            const rawVer = (versionIn && versionIn.value) ? versionIn.value.trim() : '';
+            const newVer = rawVer.replace(/^v/i,'');
             const newUpd = (updatedIn && updatedIn.value) ? updatedIn.value : '';
-            const fv = document.getElementById('footerVersion'); if(fv) fv.textContent = newVer || '—';
+            const fv = document.getElementById('footerVersion'); if(fv) fv.textContent = newVer ? ('v' + newVer) : '—';
             const fu = document.getElementById('footerUpdated'); if(fu) fu.textContent = newUpd || '—';
             const fcEl = document.getElementById('footerCredit'); if(fcEl && footerCreditIn) fcEl.textContent = footerCreditIn.value || fcEl.textContent;
+            // ensure avatar element uses chosen size
+            try{
+              const avSize = (avatarSizeIn && avatarSizeIn.value) ? parseInt(avatarSizeIn.value,10) : null;
+              const avEl = document.getElementById('founderAvatar');
+              if(avEl && avSize){ avEl.style.width = avSize + 'px'; avEl.style.height = avSize + 'px'; avEl.style.fontSize = (avSize/3.2) + 'px'; }
+            }catch(e){}
           }catch(e){}
 
           // features: read textarea lines and update chips (store into _featuresLines to persist later)
@@ -6724,9 +6797,31 @@
           // persist if db available, otherwise fallback to localStorage
           try{
             const founderPayload = { name:newName, bio:newBio, instagram:newIg };
-            if(_avatarDataURL) founderPayload.avatar = _avatarDataURL;
-            else if(avatarUrlIn && avatarUrlIn.value) founderPayload.avatar = avatarUrlIn.value.trim();
-            const appPayload = { version: (versionIn && versionIn.value) ? versionIn.value.trim() : '', updated: (updatedIn && updatedIn.value) ? updatedIn.value : '' };
+            // determine avatar to persist: prefer newly uploaded dataURL, else provided URL,
+            // else preserve existing background-image src if any
+            let finalAvatarSrc = null;
+            if(_avatarDataURL) finalAvatarSrc = _avatarDataURL;
+            else if(avatarUrlIn && avatarUrlIn.value) finalAvatarSrc = avatarUrlIn.value.trim();
+            else {
+              // try to read existing founderAvatar background-image or img src
+              try{
+                const avEl = document.getElementById('founderAvatar');
+                if(avEl){
+                  const bg = avEl.style && avEl.style.backgroundImage;
+                  if(bg && bg.indexOf('url(') >= 0){ finalAvatarSrc = bg.replace(/^url\(["']?|["']?\)$/g,'').replace(/^url\(|\)$/g,'').replace(/^["']|["']$/g,''); }
+                  else {
+                    const im = avEl.querySelector && avEl.querySelector('img');
+                    if(im && im.src) finalAvatarSrc = im.src;
+                  }
+                }
+              }catch(e){}
+            }
+            if(finalAvatarSrc) founderPayload.avatar = finalAvatarSrc;
+            // persist avatar offset as percent if available
+            try{ if(_avatarOffset && typeof _avatarOffset.x !== 'undefined') founderPayload.avatarOffset = { x: Math.round(_avatarOffset.x), y: Math.round(_avatarOffset.y) }; }catch(e){}
+            // store normalized version (without 'v') and avatar size
+            const appPayload = { version: (versionIn && versionIn.value) ? versionIn.value.trim().replace(/^v/i,'') : '', updated: (updatedIn && updatedIn.value) ? updatedIn.value : '' };
+            try{ if(avatarSizeIn && avatarSizeIn.value) appPayload.avatarSize = parseInt(avatarSizeIn.value,10); }catch(e){}
             // attach features collected earlier (if any)
             try{ if(Array.isArray(_featuresLines) && _featuresLines.length > 0) appPayload.features = _featuresLines; }catch(e){}
             const footerPayload = { credit: (footerCreditIn && footerCreditIn.value) ? footerCreditIn.value : '' };
@@ -6766,3 +6861,48 @@
 
   </body>
 </html>
+
+<!-- Hide About Us for guests: show only when a user is logged in -->
+<script>
+  (function(){
+    const el = document.getElementById('aboutUs');
+    function isLoggedIn(){
+      try{ return !!(window.currentUser || localStorage.getItem('loggedUser')); }catch(e){ return false; }
+    }
+
+    // ensure hidden by default (inline style already set) and show only when confirmed
+    try{
+      if(!el) return;
+      el.style.display = isLoggedIn() ? '' : 'none';
+    }catch(e){}
+
+    // keep track of previous state and update only on change to avoid flicker
+    let last = isLoggedIn();
+    function update(){
+      try{
+        const cur = isLoggedIn();
+        if(cur !== last){
+          last = cur;
+          el.style.display = cur ? '' : 'none';
+        }
+      }catch(e){}
+    }
+
+    // Poll for changes (lightweight) so logout/login reflect immediately
+    setInterval(update, 400);
+
+    // Patch localStorage.setItem to react when loggedUser is changed programmatically
+    try{
+      const origSet = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(k,v){
+        origSet.apply(this, arguments);
+        if(k === 'loggedUser') update();
+      };
+    }catch(e){}
+
+    // Expose manual toggler and listen for custom events
+    window.toggleAboutVisibility = function(){ try{ el.style.display = isLoggedIn() ? '' : 'none'; }catch(e){} };
+    window.addEventListener('user:login', update);
+    window.addEventListener('user:logout', update);
+  })();
+</script>
